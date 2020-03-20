@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Profile;
 //扫包
 @ComponentScan("com.xauv")
 // 设置开发环境
-@Profile("dev")
+@Profile("java-config")
 //导入配置文件，实现 xml annotation 混合开发
 @ImportResource("classpath:spring-context.xml")
-public class AppConfig {
+public class AppConfigForAnnotation {
 }

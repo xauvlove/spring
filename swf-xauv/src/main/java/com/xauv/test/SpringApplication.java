@@ -1,6 +1,6 @@
 package com.xauv.test;
 
-import com.xauv.config.AppConfig;
+import com.xauv.config.AppConfigForAnnotation;
 import com.xauv.dao.MyDao;
 import com.xauv.dao.SpringXMLDao;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -11,15 +11,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * 1. xml, {@link ClassPathXmlApplicationContext}
  * 2. annotation, {需要借助 1或3 完成包扫描}:
  * 	               具体做法：context.scan("com.xauv");
- * 3. javaconfig, {@link AnnotationConfigApplicationContext}
+ * 3. java config, {@link AnnotationConfigApplicationContext}
  */
 public class SpringApplication {
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext context =
 				new AnnotationConfigApplicationContext();
-		context.getEnvironment().setActiveProfiles("dev");
+		context.getEnvironment().setActiveProfiles("java-config");
 		// 注册 {@link Configuration 类型}
-		context.register(AppConfig.class);
+		context.register(AppConfigForAnnotation.class);
 		context.refresh();
 		MyDao myDaoImpl = (MyDao)context.getBean("myDaoImpl");
 		myDaoImpl.doDao();
