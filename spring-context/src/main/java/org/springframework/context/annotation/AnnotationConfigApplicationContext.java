@@ -53,6 +53,11 @@ import org.springframework.util.Assert;
  */
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
 
+	/**
+	 * 一个读取注解的读取器，读取 AnnotatedBeanDefinition
+	 * 读取被加了注解的 Bean
+	 *
+	 */
 	private final AnnotatedBeanDefinitionReader reader;
 
 	private final ClassPathBeanDefinitionScanner scanner;
@@ -61,9 +66,23 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	/**
 	 * Create a new AnnotationConfigApplicationContext that needs to be populated
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
+	 *
+	 * 初始化读取器和扫描器
+	 *
+	 * 如果在初始化 spring 环境时，使用这个构造函数初始化，
+	 * 		那么后面需要调用 {#register(Class)}来注册配置类
+	 * 		再调用refresh()刷新容器
+	 * 	       ---- 触发对注解 Bean 的载入，解析和注册的过程
+	 *
 	 */
 	public AnnotationConfigApplicationContext() {
+		/**
+		 * 创建一个读取注解的读取器，可以读取被加了特定注解的类
+		 */
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+		/**
+		 *
+		 */
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -84,6 +103,12 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		/**
+		 * componentClasses 是配置类
+		 *
+		 * 有父类，先调用父类构造方法，再调用自己构造方法
+		 * 生成 读取器和扫描器
+		 */
 		this();
 		register(componentClasses);
 		refresh();
@@ -146,6 +171,12 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	//---------------------------------------------------------------------
 
 	/**
+	 * 注册单个 Bean 给容器，   -- 需要传入一个被注解的类 --
+	 * 注册Bean之后，必须调用 {@link #refresh(), 触发容器解析注解} 刷新容器才可以用 刚才注册的 Bean
+	 *
+	 * 1. 可以注册配置类
+	 * 2. 可以注册单个 Bean
+	 *
 	 * Register one or more component classes to be processed.
 	 * <p>Note that {@link #refresh()} must be called in order for the context
 	 * to fully process the new classes.
@@ -157,6 +188,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	@Override
 	public void register(Class<?>... componentClasses) {
 		Assert.notEmpty(componentClasses, "At least one component class must be specified");
+		// 使用 reader 注册该类
 		this.reader.register(componentClasses);
 	}
 

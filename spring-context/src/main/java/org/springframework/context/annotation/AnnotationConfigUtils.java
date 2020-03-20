@@ -130,6 +130,8 @@ public abstract class AnnotationConfigUtils {
 
 
 	/**
+	 * 注册特定 注解 处理器，如果 registry 不同的话，可能注册的 后置处理器不同
+	 *
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
 	 */

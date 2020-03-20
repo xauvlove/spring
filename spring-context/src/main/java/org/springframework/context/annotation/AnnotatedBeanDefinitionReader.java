@@ -23,10 +23,7 @@ import org.springframework.beans.factory.annotation.AnnotatedGenericBeanDefiniti
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.support.AutowireCandidateQualifier;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanNameGenerator;
+import org.springframework.beans.factory.support.*;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.EnvironmentCapable;
 import org.springframework.core.env.StandardEnvironment;
@@ -72,6 +69,10 @@ public class AnnotatedBeanDefinitionReader {
 	}
 
 	/**
+	 * AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
+	 * 注册 spring 默认的 7 个类
+	 *
+	 *
 	 * Create a new {@code AnnotatedBeanDefinitionReader} for the given registry,
 	 * using the given {@link Environment}.
 	 * @param registry the {@code BeanFactory} to load bean definitions into,
@@ -85,6 +86,7 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		//注册 spring 默认的 7 个类
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 
@@ -224,6 +226,7 @@ public class AnnotatedBeanDefinitionReader {
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
 		/**
 		 * 判断是否要跳过解析
+		 * 如果被加了 Condition 注解，那么跳过解析
 		 */
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
@@ -249,6 +252,14 @@ public class AnnotatedBeanDefinitionReader {
 		 * 处理结果依然是 将这些信息 记录在 AnnotatedGenericBeanDefinition 数据结构中
 		 */
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+		/**
+		 * 可以在配置Bean的时候使用额外的注解，比如 @Qualifier @Primary
+		 * @Qualifier @Primary 主要涉及 自动装配
+		 *
+		 * spring 初始化 qualifiers 永远是 null，下面不会被执行 （只有 spring 内部调用用到）
+		 *
+		 * 但有一些地方会 传入 qualifiers，我们在做开发一般不会到达下面这个 if
+		 */
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
 				if (Primary.class == qualifier) {
@@ -266,8 +277,21 @@ public class AnnotatedBeanDefinitionReader {
 			customizer.customize(abd);
 		}
 
+		/**
+		 * BeanDefinitionHolder 存放了 beanName 和 BeanDefinition
+		 */
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		/**
+		 * 将包装好（解析好）并完成封装的 bean，形成 BeanDefinitionHolder 装入 容器，
+		 * 这个容器就是 AnnotationConfigApplicationContext
+		 * 其中，AnnotationConfigApplicationContext 首先初始化了一个 工厂
+		 * 				DefaultListableBeanFactory工厂
+		 * 将	BeanDefinitionHolder {@link DefaultListableBeanFactory} 装入这个工厂
+		 * 放在 beanDefinitionMap 中
+		 *
+		 * 此时，还没有对 bean 进行初始化
+		 */
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
 
