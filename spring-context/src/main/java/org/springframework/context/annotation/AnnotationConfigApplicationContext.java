@@ -70,6 +70,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * 初始化读取器和扫描器
 	 *
 	 * 如果在初始化 spring 环境时，使用这个构造函数初始化，
+	 * 		父类构造函数实现了：this.beanFactory = new DefaultListableBeanFactory();
 	 * 		那么后面需要调用 {#register(Class)}来注册配置类
 	 * 		再调用refresh()刷新容器
 	 * 	       ---- 触发对注解 Bean 的载入，解析和注册的过程

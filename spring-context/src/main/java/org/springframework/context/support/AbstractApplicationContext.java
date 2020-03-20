@@ -666,6 +666,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		 * {@core 回调}
 		 * 可以实现 spring bean 的扩展
 		 * 		spring bean 的扩展：
+		 * 	ApplicationContextAwareProcessor 是 BeanPostProcessor 的一种实现
+		 *
 		 */
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);

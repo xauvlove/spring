@@ -79,6 +79,9 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 	public Object postProcessBeforeInitialization(final Object bean, String beanName) throws BeansException {
 		AccessControlContext acc = null;
 
+		/**
+		 * 这里是对 spring 内部的判断
+		 */
 		if (System.getSecurityManager() != null &&
 				(bean instanceof EnvironmentAware || bean instanceof EmbeddedValueResolverAware ||
 						bean instanceof ResourceLoaderAware || bean instanceof ApplicationEventPublisherAware ||
@@ -93,6 +96,9 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 			}, acc);
 		}
 		else {
+			/**
+			 *
+			 */
 			invokeAwareInterfaces(bean);
 		}
 
@@ -117,6 +123,8 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 				((MessageSourceAware) bean).setMessageSource(this.applicationContext);
 			}
 			if (bean instanceof ApplicationContextAware) {
+				//如果 FactoryBean 实现了 ApplicationContextAware 接口
+				//那么只需要实现 setApplicationContext() 即可得到 ApplicationContext
 				((ApplicationContextAware) bean).setApplicationContext(this.applicationContext);
 			}
 		}
