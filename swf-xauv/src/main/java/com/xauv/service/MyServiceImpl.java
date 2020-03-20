@@ -1,4 +1,4 @@
-package com.service;
+package com.xauv.service;
 
 import org.springframework.stereotype.Service;
 

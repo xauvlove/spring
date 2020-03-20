@@ -308,9 +308,22 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return a corresponding Set of autodetected bean definitions
 	 */
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
+		/**
+		 * 如果添加了 spring 类扫描索引（在 pom 添加一个依赖即可<spring-context-index></>），
+		 * <dependency>
+		 *    <groupId>org.springframework</groupId>
+		 *    <artifactId>spring-context-indexer</artifactId>
+		 *    <version>5.2.0.RELEASE</version>
+		 * </dependency>
+		 *
+		 * 就会走下面逻辑  加快扫描速度
+		 */
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
+		/**
+		 * 没有添加 spring 包扫描索引，走下面逻辑
+		 */
 		else {
 			return scanCandidateComponents(basePackage);
 		}
@@ -416,6 +429,12 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 		try {
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+			/**
+			 * 下面这行代码完成扫描
+			 * 他把包下所有的class都装到 resources 里
+			 * 因此，我们在建包的是时候不能建立如：com，org，等等别人已经使用过的
+			 * 因为如果这么建包，这个Resource[]将会非常大
+			 */
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
@@ -468,6 +487,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 
 	/**
+	 * 将 . 转化成 /
 	 * Resolve the specified base package into a pattern specification for
 	 * the package search path.
 	 * <p>The default implementation resolves placeholders against system properties,

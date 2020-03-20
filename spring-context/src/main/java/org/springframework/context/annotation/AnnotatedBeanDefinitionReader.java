@@ -214,16 +214,40 @@ public class AnnotatedBeanDefinitionReader {
 	<T> void doRegisterBean(Class<T> beanClass, @Nullable Supplier<T> instanceSupplier, @Nullable String name,
 			@Nullable Class<? extends Annotation>[] qualifiers, BeanDefinitionCustomizer... definitionCustomizers) {
 
+		/**
+		 * 根据 bean 创建一个 AnnotatedGenericBeanDefinition
+		 * AnnotatedGenericBeanDefinition 是存储bean信息的数据结构
+		 * 包含了 注解信息、等（方法元数据信息 MethodMetadata），
+		 * 这个版本，没有使用 MethodMetadata，也就是 MethodMetadata 是可以不存在的
+		 *
+		 */
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+		/**
+		 * 判断是否要跳过解析
+		 */
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
 		abd.setInstanceSupplier(instanceSupplier);
+		/**
+		 * 得到类作用域
+		 */
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+		/**
+		 * 把类的作用域添加到 AnnotatedGenericBeanDefinition 数据存储结构中
+		 */
 		abd.setScope(scopeMetadata.getScopeName());
+		/**
+		 * 生成类的名字通过 beanNameGenerator, 来设置 bean的名称
+		 */
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 
+		/**
+		 * 处理类的通用注解
+		 * 处理 lazy, DependsOn, Primary, Role, Description
+		 * 处理结果依然是 将这些信息 记录在 AnnotatedGenericBeanDefinition 数据结构中
+		 */
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
