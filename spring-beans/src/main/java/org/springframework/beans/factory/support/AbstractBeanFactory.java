@@ -242,9 +242,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		/**
 		 * 通过 name 获取 beanName
 		 * 1.name可能会以 & 开头，表明使用者要获取 FactoryBean 本身
-		 * 而不是获取 bean，
+		 * 而不是获取 FactoryBean 所实现的 bean，
 		 * FactoryBean 在纳入 spring ioc 容器的时候，存储方式和 普通 bean 一致 <beanName, bean></>
-		 * 但是  beanName 没有 & 字符，因此需要将 & 去除 才能获取 bean（FactoryBean本身）
+		 * 但是 存储的 beanName 没有 & 字符，因此需要将 & 去除 才能获取 bean（FactoryBean本身）
 		 * 2.别名的问题
 		 */
 		final String beanName = transformedBeanName(name);
