@@ -131,7 +131,7 @@ public abstract class AnnotationConfigUtils {
 
 
 	/**
-	 * æ³¨å†Œç‰¹å®š æ³¨è§£ å¤„ç†å™¨ï¼Œå¦‚æœ registry ä¸åŒçš„è¯ï¼Œå¯èƒ½æ³¨å†Œçš„ åç½®å¤„ç†å™¨ä¸åŒ
+	 * ×¢²áÌØ¶¨ ×¢½â ´¦ÀíÆ÷£¬Èç¹û registry ²»Í¬µÄ»°£¬¿ÉÄÜ×¢²áµÄ ºóÖÃ´¦ÀíÆ÷²»Í¬
 	 *
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
@@ -141,7 +141,7 @@ public abstract class AnnotationConfigUtils {
 	}
 
 	/**
-	 * ä¸º spring BeanFactory æ·»åŠ è¯¸å¤šåç½®å¤„ç†å™¨
+	 * Îª spring BeanFactory Ìí¼ÓÖî¶àºóÖÃ´¦ÀíÆ÷
 	 *
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
@@ -156,21 +156,28 @@ public abstract class AnnotationConfigUtils {
 		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
 		if (beanFactory != null) {
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
+				//AnnotationAwareOrderComparator ÓÃÀ´½âÎö @OrderºÍ@Priority
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
 			}
 			if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
+				//ContextAnnotationAutowireCandidateResolver Ìá¹©´¦ÀíÑÓ³Ù¼ÓÔØ¹©ÄÜ
 				beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
 			}
 		}
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
-
+		/**
+		 * ConfigurationClassPostProcessor ÊÇ´¦Àí @Configuration µÄºóÖÃ´¦ÀíÆ÷
+		 * ËûµÄÖ´ĞĞÓÅÏÈ¼¶ÊÇ×îµÍµÄ
+		 */
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
-
+		/**
+		 * AutowiredAnnotationBeanPostProcessor ÊÇ´¦Àí @Autowired µÄºóÖÃ´¦ÀíÆ÷
+		 */
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);

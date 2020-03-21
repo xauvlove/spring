@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.lang.Nullable;
@@ -55,11 +56,18 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 
 	/**
 	 * 一个读取注解的读取器，读取 AnnotatedBeanDefinition
-	 * 读取被加了注解的 Bean
+	 * 只能读取被加了<注解>的类
 	 *
+	 * 给 reader 一个类，它就可以把这个类转换(描述)成一个 BeanDefinition
+	 * 		转换方法：{@link AnnotatedBeanDefinitionReader#doRegisterBean(java.lang.Class,
+	 * 		java.util.function.Supplier, java.lang.String,
+	 * 		java.lang.Class[], org.springframework.beans.factory.config.BeanDefinitionCustomizer...)}
 	 */
 	private final AnnotatedBeanDefinitionReader reader;
 
+	/**
+	 * 能扫描一个类或包，转换成 BeanDefinition
+	 */
 	private final ClassPathBeanDefinitionScanner scanner;
 
 
@@ -67,7 +75,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * Create a new AnnotationConfigApplicationContext that needs to be populated
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 *
-	 * 初始化读取器和扫描器
+	 * 初始化读取器和扫描器，传入 this，也就是说：
+	 * 				整个SpringApplicationContext 就是一个registry（注册器）
 	 *
 	 * 如果在初始化 spring 环境时，使用这个构造函数初始化，
 	 * 		父类构造函数实现了：this.beanFactory = new DefaultListableBeanFactory();
@@ -175,8 +184,10 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * 注册单个 Bean 给容器，   -- 需要传入一个被注解的类 --
 	 * 注册Bean之后，必须调用 {@link #refresh(), 触发容器解析注解} 刷新容器才可以用 刚才注册的 Bean
 	 *
-	 * 1. 可以注册配置类
-	 * 2. 可以注册单个 Bean
+	 * 为了兼容性，这里可以注册：
+	 * 		1. 可以注册配置类（注册配置类之后，在对这个配置类实例化{@link AbstractApplicationContext#refresh()}的时候，
+	 * 						使用ConfigurationClassPostProcessor进行@Configuration解析）
+	 * 		2. 可以注册单个 Bean
 	 *
 	 * Register one or more component classes to be processed.
 	 * <p>Note that {@link #refresh()} must be called in order for the context

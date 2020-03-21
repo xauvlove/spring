@@ -80,7 +80,7 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 		AccessControlContext acc = null;
 
 		/**
-		 * è¿™é‡Œæ˜¯å¯¹ spring å†…éƒ¨çš„åˆ¤æ–­
+		 * ÕâÀïÊÇ¶Ô spring ÄÚ²¿µÄÅĞ¶Ï
 		 */
 		if (System.getSecurityManager() != null &&
 				(bean instanceof EnvironmentAware || bean instanceof EmbeddedValueResolverAware ||
@@ -123,8 +123,8 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 				((MessageSourceAware) bean).setMessageSource(this.applicationContext);
 			}
 			if (bean instanceof ApplicationContextAware) {
-				//å¦‚æœ FactoryBean å®ç°äº† ApplicationContextAware æ¥å£
-				//é‚£ä¹ˆåªéœ€è¦å®ç° setApplicationContext() å³å¯å¾—åˆ° ApplicationContext
+				//Èç¹û FactoryBean ÊµÏÖÁË ApplicationContextAware ½Ó¿Ú
+				//ÄÇÃ´Ö»ĞèÒªÊµÏÖ setApplicationContext() ¼´¿ÉµÃµ½ ApplicationContext
 				((ApplicationContextAware) bean).setApplicationContext(this.applicationContext);
 			}
 		}

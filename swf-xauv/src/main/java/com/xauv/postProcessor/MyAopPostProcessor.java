@@ -21,7 +21,7 @@ public class MyAopPostProcessor implements BeanPostProcessor, PriorityOrdered {
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName)
 			throws BeansException {
-		if(beanName.startsWith("my")) {
+		if(beanName.startsWith("my") && bean.getClass().isInterface()) {
 			return Proxy.newProxyInstance(this.getClass().getClassLoader(),
 					bean.getClass().getInterfaces(), new MyInvocationHandler(bean));
 		}

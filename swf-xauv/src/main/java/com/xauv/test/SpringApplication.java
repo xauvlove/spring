@@ -2,7 +2,6 @@ package com.xauv.test;
 
 import com.xauv.config.AppConfigForAnnotation;
 import com.xauv.dao.MyDao;
-import com.xauv.dao.SpringXMLDao;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -17,13 +16,11 @@ public class SpringApplication {
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext context =
 				new AnnotationConfigApplicationContext();
-		context.getEnvironment().setActiveProfiles("java-config");
+		context.getEnvironment().setActiveProfiles("javaConfig");
 		// 注册 {@link Configuration 类型}
 		context.register(AppConfigForAnnotation.class);
 		context.refresh();
 		MyDao myDaoImpl = (MyDao)context.getBean("myDaoImpl");
 		myDaoImpl.doDao();
-		SpringXMLDao springXMLDao = (SpringXMLDao)context.getBean("springXMLDao");
-		springXMLDao.doDao();
 	}
 }

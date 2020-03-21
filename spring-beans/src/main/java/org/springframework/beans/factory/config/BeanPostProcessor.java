@@ -20,14 +20,14 @@ import org.springframework.beans.BeansException;
 import org.springframework.lang.Nullable;
 
 /**
- * 1. BeanPostProcessor æ˜¯ Spring æä¾›çš„æ‰©å±•ç‚¹ä¹‹ä¸€
- * å®ç° BeanPostProcessor æ¥å£ï¼Œå¯ä»¥æ’æ‰‹ Bean çš„å®ä¾‹åŒ–è¿‡ç¨‹
- * BeanPostProcessor å¯ä»¥å®ç°å¤šæ¬¡ï¼Œå†é€šè¿‡å®ç° PriorityOrdered æ¥å£ï¼Œè®¾ç½®å¤„ç†å™¨æ‰§è¡Œä¼˜å…ˆçº§
- * AOPå°±æ˜¯åˆ©ç”¨äº† BeanPostProcessor æ¥åˆ‡å…¥ beanï¼Œä¸IOCå»ºç«‹è”ç³»
+ * 1. BeanPostProcessor ÊÇ Spring Ìá¹©µÄÀ©Õ¹µãÖ®Ò»
+ * ÊµÏÖ BeanPostProcessor ½Ó¿Ú£¬¿ÉÒÔ²åÊÖ Bean µÄÊµÀı»¯¹ı³Ì
+ * BeanPostProcessor ¿ÉÒÔÊµÏÖ¶à´Î£¬ÔÙÍ¨¹ıÊµÏÖ PriorityOrdered ½Ó¿Ú£¬ÉèÖÃ´¦ÀíÆ÷Ö´ĞĞÓÅÏÈ¼¶
+ * AOP¾ÍÊÇÀûÓÃÁË BeanPostProcessor À´ÇĞÈë bean£¬ÓëIOC½¨Á¢ÁªÏµ
  *
- * å¸¸ç”¨çš„åç½®å¤„ç†å™¨åŒ…æ‹¬ï¼š
+ * ³£ÓÃµÄºóÖÃ´¦ÀíÆ÷°üÀ¨£º
  * 		1. ApplicationContextAwareprocessor
- * 		2. InitDestroyAnnotationBeanProcessor ç”¨æ¥å¤„ç†è‡ªå®šä¹‰åˆå§‹åŒ–æ–¹æ³•å’Œé”€æ¯æ–¹æ³•
+ * 		2. InitDestroyAnnotationBeanProcessor ÓÃÀ´´¦Àí×Ô¶¨Òå³õÊ¼»¯·½·¨ºÍÏú»Ù·½·¨
  * 		3.
  *
  * Factory hook that allows for custom modification of new bean instances,
@@ -53,7 +53,7 @@ import org.springframework.lang.Nullable;
 public interface BeanPostProcessor {
 
 	/**
-	 * åœ¨ bean åˆå§‹åŒ–å‰æ‰§è¡Œ
+	 * ÔÚ bean ³õÊ¼»¯Ç°Ö´ĞĞ
 	 *
 	 * Apply this BeanPostProcessor to the given new bean instance <i>before</i> any bean
 	 * initialization callbacks (like InitializingBean's {@code afterPropertiesSet}
@@ -73,7 +73,7 @@ public interface BeanPostProcessor {
 	}
 
 	/**
-	 * åœ¨ bean åˆå§‹åŒ–åæ‰§è¡Œ
+	 * ÔÚ bean ³õÊ¼»¯ºóÖ´ĞĞ
 	 *
 	 * Apply this BeanPostProcessor to the given new bean instance <i>after</i> any bean
 	 * initialization callbacks (like InitializingBean's {@code afterPropertiesSet}

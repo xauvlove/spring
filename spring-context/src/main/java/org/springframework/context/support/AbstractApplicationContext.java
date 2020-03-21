@@ -512,6 +512,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		return this.applicationListeners;
 	}
 
+	/**
+	 * 执行步骤：
+	 * 	1.准备 spring application context
+	 * 	2.获取 bean factory
+	 *	3.
+	 *
+	 * @throws BeansException
+	 * @throws IllegalStateException
+	 */
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
@@ -522,7 +531,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
-			//获取 BeanFactory
+			//获取 BeanFactory，因为下一步需要对 bean factory 进行设置
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
@@ -656,18 +665,28 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		// Tell the internal bean factory to use the context's class loader etc.
 		beanFactory.setBeanClassLoader(getClassLoader());
-		//bean 表达式解析
+		//bean 表达式解析，添加解析器，
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
-		//获取 properties 配置信息
+		//获取 properties 配置文件信息 <在 springboot 项目，经常使用 yaml>
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
 		/**
-		 * {@core 回调}
+		 * {@core 添加后置处理器}
 		 * 可以实现 spring bean 的扩展
 		 * 		spring bean 的扩展：
 		 * 	ApplicationContextAwareProcessor 是 BeanPostProcessor 的一种实现
 		 *
+		 *
+		 * beanFactory 是一个 DefaultListableBeanFactory, 维护了一个 List<BeanPostProcessor>
+		 *     这里就是将后置处理器添加到这个 List<BeanPostProcessor>
+		 *
+		 *     这里的 ApplicationContextAwareProcessor 本身是一个 BeanPostProcessor
+		 *     但是它的内部会对 bean 进行各种判断，判断 bean 是否属于一个 aware
+		 *     如果属于一个aware，那么就可以再进行扩展，
+		 *     这里 ApplicationContextAwareProcessor 共扩展了 6 个 aware
+		 *     经常使用的是 {@link ApplicationContextAware}，
+		 *     我们只需要让一个类实现这个接口，就可以 再次对 bean 进行改造，而且我们可以拿到整个 applicationContext
 		 */
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);

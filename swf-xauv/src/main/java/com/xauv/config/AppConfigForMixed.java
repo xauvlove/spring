@@ -14,3 +14,4 @@ import org.springframework.context.annotation.Profile;
 @ImportResource("classpath:spring-context.xml")
 public class AppConfigForMixed {
 }
+
