@@ -87,11 +87,20 @@ abstract class ConfigurationClassUtils {
 		}
 
 		AnnotationMetadata metadata;
+		/**
+		 * 1. 判断 bean 是否是被注解的 BeanDefinition，也即 AnnotatedBeanDefinition
+		 * spring 内部的 BeanDefinition 都是属于 RootBeanDefinition，
+		 * 因此 内部的 BeanDefinition 不会走下面逻辑
+		 * 2. 判断 bean 是否被修改（安全保证）
+		 */
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
 			metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
 		}
+		/**
+		 * spring 还可以这样拿配置信息
+		 */
 		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
 			// Check already loaded Class if present...
 			// since we possibly can't even load the class file for this Class.
@@ -111,10 +120,19 @@ abstract class ConfigurationClassUtils {
 				return false;
 			}
 		}
-		//判断是否包含注解 @Configuration
+		/**
+		 * 判断是否包含注解 @Configuration
+		 * 如果包含，那么设置它为 CONFIGURATION_CLASS_ATTRIBUTE = configurationClass
+		 * 且，设置它已经被解析过 CONFIGURATION_CLASS_FULL = full
+		 */
 		if (isFullConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		/**
+		 * 如果不是 @Configuration
+		 * 但它是 @Import  @ImportResource  @Component  @ComponentScan，是否存在含有 @Bean 的方法
+		 * 也会标记为待解析
+		 */
 		else if (isLiteConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}

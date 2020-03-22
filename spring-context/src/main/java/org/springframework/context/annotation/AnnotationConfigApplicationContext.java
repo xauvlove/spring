@@ -67,6 +67,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 
 	/**
 	 * 能扫描一个类或包，转换成 BeanDefinition
+	 * 这里的 scanner 仅仅是为了提供我们传入的 packages 扫描
+	 * 对于 配置类中定义的 ComponentScan 扫描是 reader 完成的
 	 */
 	private final ClassPathBeanDefinitionScanner scanner;
 

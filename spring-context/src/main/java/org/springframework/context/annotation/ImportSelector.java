@@ -19,6 +19,9 @@ package org.springframework.context.annotation;
 import org.springframework.core.type.AnnotationMetadata;
 
 /**
+
+ *
+ *
  * Interface to be implemented by types that determine which @{@link Configuration}
  * class(es) should be imported based on a given selection criteria, usually one or
  * more annotation attributes.

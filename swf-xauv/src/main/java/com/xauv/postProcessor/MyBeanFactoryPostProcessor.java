@@ -10,7 +10,7 @@ import java.util.Iterator;
 @Component
 public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 	/**
-	 * bean factory ºóÖÃ´¦ÀíÆ÷£¬Èç¹û bean ÒÔ ¡°ServiceImpl¡± ½áÎ²£¬ÄÇÃ´½«ÆäÉèÖÃÎªÔ­ÐÍ
+	 * bean factory ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ bean ï¿½ï¿½ ï¿½ï¿½ServiceImplï¿½ï¿½ ï¿½ï¿½Î²ï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÔ­ï¿½ï¿½
 	 * @param beanFactory the bean factory used by the application context
 	 * @throws BeansException
 	 */

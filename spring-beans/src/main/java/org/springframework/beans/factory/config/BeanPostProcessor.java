@@ -17,6 +17,8 @@
 package org.springframework.beans.factory.config;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.lang.Nullable;
 
 /**
@@ -26,9 +28,12 @@ import org.springframework.lang.Nullable;
  * AOP就是利用了 BeanPostProcessor 来切入 bean，与IOC建立联系
  *
  * 常用的后置处理器包括：
- * 		1. ApplicationContextAwareprocessor
- * 		2. InitDestroyAnnotationBeanProcessor 用来处理自定义初始化方法和销毁方法
- * 		3.
+ * 		1. {@linkplain org.springframework.context.support.ApplicationContextAwareProcessor}
+ * 				{@linkplain org.springframework.context.ApplicationContextAware}
+ * 		2. {@linkplain InitDestroyAnnotationBeanPostProcessor} 用来处理自定义初始化方法和销毁方法
+ * 		3. {@linkplain BeanPostProcessor}
+ * 		4. {@linkplain BeanFactoryPostProcessor}
+ * 		5. {@linkplain BeanDefinitionRegistryPostProcessor}
  *
  * Factory hook that allows for custom modification of new bean instances,
  * e.g. checking for marker interfaces or wrapping them with proxies.

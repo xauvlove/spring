@@ -9,6 +9,10 @@ import org.springframework.context.annotation.Profile;
 @ComponentScan("com.xauv")
 // 设置开发环境
 @Profile("javaConfig")
-//导入配置文件，实现 xml annotation 混合开发
+/**
+ * 导入动态添加 BeanDefinition 注册器
+ * 由于此版本 spring 不支持，现会出现运行报错
+ */
+//@Import(MybatisImportBeanDefinitionRegistrar.class)
 public class AppConfigForAnnotation {
 }

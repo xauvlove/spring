@@ -514,9 +514,18 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	/**
 	 * 执行步骤：
-	 * 	1.准备 spring application context
-	 * 	2.获取 bean factory
-	 *	3.
+	 * 	1.{@link AbstractApplicationContext#prepareRefresh()}准备 spring application context
+	 * 	2.@{@link AbstractApplicationContext#obtainFreshBeanFactory()}获取 bean factory
+	 *	3.@{@link AbstractApplicationContext#prepareBeanFactory(
+	 *		org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}
+	 *		填充 BeanFactory，主要是增加了很多的 BeanPostProcessor
+	 *	4.@{@link AbstractApplicationContext#postProcessBeanFactory(
+	 *		org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}空方法
+	 *	5.@{@link AbstractApplicationContext#invokeBeanFactoryPostProcessors(
+	 *		org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}
+	 *		对bean进行后置处理，扫包加入到 beanDefinitionMap
+	 *  6.@{@link AbstractApplicationContext#registerBeanPostProcessors(
+	 *  	org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}
 	 *
 	 * @throws BeansException
 	 * @throws IllegalStateException
@@ -668,6 +677,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		//bean 表达式解析，添加解析器，
 		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
 		//获取 properties 配置文件信息 <在 springboot 项目，经常使用 yaml>
+		/**
+		 * 例如 <property ref = "dao"></property>
+		 * 对于这些xml信息，都是由 ResourceEditorRegistrar 来转化为 bean 的
+		 */
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
@@ -689,6 +702,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		 *     我们只需要让一个类实现这个接口，就可以 再次对 bean 进行改造，而且我们可以拿到整个 applicationContext
 		 */
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+		/**
+		 * 自动注入忽略（因为ApplicationContextAwareProcessor把其他5个接口的实现工作做了）
+		 * 	也就是说，我们的类 MyAware 实现了下面6个接口的一个或几个接口时，
+		 * 		如果我们这个类 MyAware 包含有自动装配的依赖(@Autowired)，那么这个依赖是被忽略掉不去装配的
+		 *  在 ApplicationContextAwareProcessor 中，会自动判断 spring 环境所定义的 Aware
+		 *  也就是下面这6个
+		 * */
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
 		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
@@ -698,12 +718,25 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// BeanFactory interface not registered as resolvable type in a plain factory.
 		// MessageSource registered (and found for autowiring) as a bean.
+		/**
+		 * 依赖替换，
+		 * 如果我们在 bean 注入下面 4 种类型（dependencyType），
+		 * 那么会使用（autowiredValue）进行替换
+		 *
+		 * 例如：在 bean 注入 BeanFactory，会使用 beanFactory 进行替换
+		 * 		在 bean 注入 ResourceLoader，会使用 this（application context） 进行替换
+		 */
 		beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);
 		beanFactory.registerResolvableDependency(ResourceLoader.class, this);
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
 		beanFactory.registerResolvableDependency(ApplicationContext.class, this);
 
 		// Register early post-processor for detecting inner beans as ApplicationListeners.
+		/** 添加BeanPostProcessor(后置处理器)：ApplicationListenerDetector
+		 *	在Bean初始化后检查是否实现了ApplicationListener接口,
+		 *	是则加入当前的applicationContext的applicationListeners列表
+		 *  Spring 事件监听
+		 */
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found.
@@ -714,6 +747,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Register default environment beans.
+		/**
+		 * 注入系统环境信息
+		 */
 		if (!beanFactory.containsLocalBean(ENVIRONMENT_BEAN_NAME)) {
 			beanFactory.registerSingleton(ENVIRONMENT_BEAN_NAME, getEnvironment());
 		}
@@ -741,6 +777,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
+		/**
+		 * {@link AbstractApplicationContext#getBeanFactoryPostProcessors()}
+		 * 		拿到我们自己定义(手动添加)的 BeanFactoryPostProcessors，
+		 * 			这个BeanFactoryPostProcessor是我们自己实现的 且没有加 @Component 的
+		 * 				而且，是在 springApplicationContext 调用 refresh() 前，手动加入到 springApplicationContext中的
+		 * 						springApplicationContext.addBeanFactoryPostProcessor(myBeanFactoryProcessor)
+		 */
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime

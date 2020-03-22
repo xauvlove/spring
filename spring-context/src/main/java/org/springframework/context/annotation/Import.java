@@ -23,6 +23,28 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ *   对于 @Import()：含义在于注册一个类作为 bean
+ *   		可以写：1.@Import(Class),传入一个普通类(可以是 bean)
+ *   			   2.@Import(ImportSelector)，
+ *   			   3.@Import(ImportBeanDefinitionRegistrar)
+ *
+ * 	对于 1：传入普通类
+ * 	对于 2：自己定义一个类，实现 ImportSelector 接口，重写方法 返回多个类路径（和 1 等同）
+ * 	对于 3：
+ *
+ * 对于注册 bean：
+ * 	1.register(Class),需要传入类
+ * 	2.scan("com.xauv"),需要传入包路径
+ * 	对于1，2 我们无法参与 Class 变成 BeanDefinition 的过程，3 可以解决
+ * 	3.@Import(ImportBeanDefinitionRegistrar),我们可以直接往 beanDefinitionMap添加 beanDefinition
+ *  Mybatis 中的 @MapperScan() 扫描 mapper<接口> 变成对象 存放在 spring 容器，就是使用 3 实现的
+ *
+ *  如果 @MapperScan() 扫描到 mapper 接口，需要将其变为对象，如何放到 spring 容器中是个问题
+ *  因为 mybatis 在扫描 mapper 的时候，spring 环境已经初始完毕了，我们无论用什么方法都无法往 spring 容器的 BeanDefinitionMap 添加其元素
+ *  3 可以，它可以在 spring 容器初始化完毕后 动态往 BeanDefinitionMap 添加 BeanDefinition
+ *
+ *
+ *
  * Indicates one or more <em>component classes</em> to import &mdash; typically
  * {@link Configuration @Configuration} classes.
  *

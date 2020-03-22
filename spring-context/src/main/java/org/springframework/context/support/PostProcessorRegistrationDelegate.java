@@ -35,6 +35,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 import org.springframework.core.PriorityOrdered;
@@ -60,9 +61,17 @@ final class PostProcessorRegistrationDelegate {
 
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+			/**
+			 *  下面两个 list 分别存储 BeanFactoryPostProcessor 和 BeanDefinitionRegistryPostProcessor
+			 *	为了保持扩展性，BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor
+			 *	进行两次处理
+			 */
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
+			/**
+			 * 这里是 处理 我们自定义的 BeanFactoryPostProcessor，且是手动加入到 spring context 的
+			 */
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
 					BeanDefinitionRegistryPostProcessor registryProcessor =
@@ -79,9 +88,18 @@ final class PostProcessorRegistrationDelegate {
 			// uninitialized to let the bean factory post-processors apply to them!
 			// Separate between BeanDefinitionRegistryPostProcessors that implement
 			// PriorityOrdered, Ordered, and the rest.
+			/**
+			 * currentRegistryProcessors 存放 spring 自己的 BeanPostProcessor
+			 */
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
+			/**
+			 * 根据 bean 的类型获取 bean name
+			 * 这里默认会获取一个 BeanPostProcessor,就是之前装入的 {@linkplain ConfigurationClassPostProcessor}
+			 * ConfigurationClassPostProcessor 会对 bean 做出解析，如果解析出 bean 是 一个 @Configuration
+			 * 		就会再次 解析是否包含 @Component  @PropertySources @ComponentScans，再做相应的事情
+			 */
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
@@ -91,7 +109,12 @@ final class PostProcessorRegistrationDelegate {
 				}
 			}
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
+			//自己定义(添加)的 BeanPostProcessor 和 spring 的 BeanPostProcessor 合并
+			//registryProcessors 包含的都是 BeanDefinitionRegistryPostProcessor 对象 bean
 			registryProcessors.addAll(currentRegistryProcessors);
+			//正式对所有 bean 执行 后置处理器 (BeanDefinitionRegistryPostProcessor)
+			//注意，这里执行的是 BeanFactoryProcessor 的子接口处理器 BeanDefinitionRegistryPostProcessor
+			//这样的话，首先执行子接口的 方法，下面还可以执行 父接口的方法，这就完成了扩展性
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 			currentRegistryProcessors.clear();
 

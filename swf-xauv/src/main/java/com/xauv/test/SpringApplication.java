@@ -22,5 +22,9 @@ public class SpringApplication {
 		context.refresh();
 		MyDao myDaoImpl = (MyDao)context.getBean("myDaoImpl");
 		myDaoImpl.doDao();
+		//System.out.println(context.getBean("mybatisDao"));
+		/*Object mybatisDao = context.getBean("mybatisDao");
+		System.out.println(mybatisDao);*/
+
 	}
 }

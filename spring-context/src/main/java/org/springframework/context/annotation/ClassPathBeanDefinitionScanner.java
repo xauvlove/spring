@@ -272,7 +272,10 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
 		for (String basePackage : basePackages) {
-			// 扫描
+			/**
+			 * 扫描，并返回 Set<ScannedGenericBeanDefinition>，
+			 * 		这里返回的不是 BeanDefinition，而是 ScannedGenericBeanDefinition
+			*/
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
 			for (BeanDefinition candidate : candidates) {
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
@@ -289,6 +292,9 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 					definitionHolder =
 							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 					beanDefinitions.add(definitionHolder);
+					/**
+					 * 将扫描到的所有 bean 放到 beanDefinitionMap
+					 */
 					registerBeanDefinition(definitionHolder, this.registry);
 				}
 			}

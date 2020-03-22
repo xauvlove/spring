@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostP
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.event.DefaultEventListenerFactory;
@@ -168,7 +169,10 @@ public abstract class AnnotationConfigUtils {
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 		/**
 		 * ConfigurationClassPostProcessor 是处理 @Configuration 的后置处理器
+		 * 实现了 {@link BeanDefinitionRegistryPostProcessor}接口
 		 * 他的执行优先级是最低的
+		 * 增加它到容器的目的：{@link PostProcessorRegistrationDelegate#invokeBeanFactoryPostProcessors(
+		 * 		org.springframework.beans.factory.config.ConfigurableListableBeanFactory, java.util.List)}
 		 */
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
