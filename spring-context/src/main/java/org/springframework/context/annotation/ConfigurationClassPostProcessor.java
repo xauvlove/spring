@@ -263,14 +263,14 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
 		/**
-		 * Ñ­»·ËùÓĞ bean£¬¿´ÄÄ¸ö bean ĞèÒª±»½âÎö
-		 * ÕâÀï½âÎöµÄÊÇ @Configuration
-		 * ÆäÊµ£¬ÕâÀï»¹»áÅĞ¶ÏÊÇ·ñÎª @Import @ImportResourceµÈ
+		 * å¾ªç¯æ‰€æœ‰ beanï¼Œçœ‹å“ªä¸ª bean éœ€è¦è¢«è§£æ
+		 * è¿™é‡Œè§£æçš„æ˜¯ @Configuration
+		 * å…¶å®ï¼Œè¿™é‡Œè¿˜ä¼šåˆ¤æ–­æ˜¯å¦ä¸º @Import @ImportResourceç­‰
 		 */
 		for (String beanName : candidateNames) {
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
-			// ÅĞ¶ÏÕâ¸ö bean ÊÇ·ñ±»´¦Àí¹ı£¬Èç¹û beanDef ÊÇÒ»¸ö configurationClass
-			// ÇÒ ÊôĞÔÎª full ÄÇÃ´¾ÍÒÑ¾­±»ÅĞ¶Ï½âÎö¹ıÁË
+			// åˆ¤æ–­è¿™ä¸ª bean æ˜¯å¦è¢«å¤„ç†è¿‡ï¼Œå¦‚æœ beanDef æ˜¯ä¸€ä¸ª configurationClass
+			// ä¸” å±æ€§ä¸º full é‚£ä¹ˆå°±å·²ç»è¢«åˆ¤æ–­è§£æè¿‡äº†
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef) ||
 					ConfigurationClassUtils.isLiteConfigurationClass(beanDef)) {
 				if (logger.isDebugEnabled()) {
@@ -278,9 +278,11 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				}
 			}
 			/**
-			 * ÅĞ¶ÏÊÇ·ñÎªÅäÖÃÀà @Configuration
-			 * Èç¹û²»ÊÇ @Configuration£¬ »¹»á¼ÌĞøÅĞ¶ÏÊÇ·ñ @Import @ImportResource @ComponentScan @Component @Bean
-			 * ÒòÎª Èç¹ûÎÒÃÇÔÚÅäÖÃÀàÉÏ²»¼Ó @Configuration µ«ÊÇ¼ÓÁË @ImportResource£¬@ComponentScan£¬spring Ò²»áÈÏÎªÕâ¸ö bean ÊÇ´ı½âÎöµÄ
+			 * åˆ¤æ–­æ˜¯å¦ä¸ºé…ç½®ç±» @Configuration,
+			 * å¦‚æœä¸æ˜¯ @Configurationï¼Œ è¿˜ä¼šç»§ç»­åˆ¤æ–­æ˜¯å¦ @Import @ImportResource @ComponentScan @Component @Bean
+			 * å› ä¸º å¦‚æœæˆ‘ä»¬åœ¨é…ç½®ç±»ä¸Šä¸åŠ  @Configuration ä½†æ˜¯åŠ äº† @ImportResourceï¼Œ@ComponentScanï¼Œspring ä¹Ÿä¼šè®¤ä¸ºè¿™ä¸ª bean æ˜¯å¾…è§£æçš„
+			 *
+			 * full or lite
 			 */
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
@@ -293,7 +295,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		// Sort by previously determined @Order value, if applicable
-		// ½âÎöÇ°ÅÅĞò
+		// è§£æå‰æ’åº
 		configCandidates.sort((bd1, bd2) -> {
 			int i1 = ConfigurationClassUtils.getOrder(bd1.getBeanDefinition());
 			int i2 = ConfigurationClassUtils.getOrder(bd2.getBeanDefinition());
@@ -322,10 +324,16 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
 
-		//È¥ÖØ
+		//å»é‡
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
+			/**
+			 * è§£æé…ç½®ç±»ï¼Œ
+			 * é‡Œé¢å…¶å®å†…ç½®äº† é…ç½®ç±»çš„é€’å½’è§£æ åœ¨è§£æ{@link @ComponentScan}æ—¶ä½“ç°
+			 *
+			 * è¿™é‡Œä¸»è¦ä½œç”¨æ˜¯  è§£æ @ComponentScan() å¹¶æ”¾åˆ° beanDefinitionMap
+			 */
 			parser.parse(candidates);
 			parser.validate();
 
@@ -338,6 +346,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
+			/**
+			 * å°†å·²ç»å¤„ç†çš„ @Import æ”¾åˆ° beanDefinitionMap
+			 */
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 

@@ -1,5 +1,6 @@
 package com.xauv.config;
 
+import com.xauv.imitate.aop.annotation.EnableXauvAop;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -14,5 +15,9 @@ import org.springframework.context.annotation.Profile;
  * 由于此版本 spring 不支持，现会出现运行报错
  */
 //@Import(MybatisImportBeanDefinitionRegistrar.class)
+/**
+ * 开启自己的 aop
+ */
+@EnableXauvAop
 public class AppConfigForAnnotation {
 }

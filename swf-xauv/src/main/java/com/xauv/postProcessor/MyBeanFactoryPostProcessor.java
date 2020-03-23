@@ -7,6 +7,9 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.stereotype.Component;
 import java.util.Iterator;
 
+/**
+ * BeanFactoryPostProcessor 在 BeanPostProcessor 前执行
+ */
 @Component
 public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 	/**

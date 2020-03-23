@@ -88,10 +88,10 @@ abstract class ConfigurationClassUtils {
 
 		AnnotationMetadata metadata;
 		/**
-		 * 1. ÅĞ¶Ï bean ÊÇ·ñÊÇ±»×¢½âµÄ BeanDefinition£¬Ò²¼´ AnnotatedBeanDefinition
-		 * spring ÄÚ²¿µÄ BeanDefinition ¶¼ÊÇÊôÓÚ RootBeanDefinition£¬
-		 * Òò´Ë ÄÚ²¿µÄ BeanDefinition ²»»á×ßÏÂÃæÂß¼­
-		 * 2. ÅĞ¶Ï bean ÊÇ·ñ±»ĞŞ¸Ä£¨°²È«±£Ö¤£©
+		 * 1. åˆ¤æ–­ bean æ˜¯å¦æ˜¯è¢«æ³¨è§£çš„ BeanDefinitionï¼Œä¹Ÿå³ AnnotatedBeanDefinition
+		 * spring å†…éƒ¨çš„ BeanDefinition éƒ½æ˜¯å±äº RootBeanDefinitionï¼Œ
+		 * å› æ­¤ å†…éƒ¨çš„ BeanDefinition ä¸ä¼šèµ°ä¸‹é¢é€»è¾‘
+		 * 2. åˆ¤æ–­ bean æ˜¯å¦è¢«ä¿®æ”¹ï¼ˆå®‰å…¨ä¿è¯ï¼‰
 		 */
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
@@ -99,7 +99,7 @@ abstract class ConfigurationClassUtils {
 			metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
 		}
 		/**
-		 * spring »¹¿ÉÒÔÕâÑùÄÃÅäÖÃĞÅÏ¢
+		 * spring è¿˜å¯ä»¥è¿™æ ·æ‹¿é…ç½®ä¿¡æ¯
 		 */
 		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
 			// Check already loaded Class if present...
@@ -121,17 +121,17 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 		/**
-		 * ÅĞ¶ÏÊÇ·ñ°üº¬×¢½â @Configuration
-		 * Èç¹û°üº¬£¬ÄÇÃ´ÉèÖÃËüÎª CONFIGURATION_CLASS_ATTRIBUTE = configurationClass
-		 * ÇÒ£¬ÉèÖÃËüÒÑ¾­±»½âÎö¹ı CONFIGURATION_CLASS_FULL = full
+		 * åˆ¤æ–­æ˜¯å¦åŒ…å«æ³¨è§£ @Configuration
+		 * å¦‚æœåŒ…å«ï¼Œé‚£ä¹ˆè®¾ç½®å®ƒä¸º CONFIGURATION_CLASS_ATTRIBUTE = configurationClass
+		 * ä¸”ï¼Œè®¾ç½®å®ƒå·²ç»è¢«è§£æè¿‡ CONFIGURATION_CLASS_FULL = full
 		 */
 		if (isFullConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
 		/**
-		 * Èç¹û²»ÊÇ @Configuration
-		 * µ«ËüÊÇ @Import  @ImportResource  @Component  @ComponentScan£¬ÊÇ·ñ´æÔÚº¬ÓĞ @Bean µÄ·½·¨
-		 * Ò²»á±ê¼ÇÎª´ı½âÎö
+		 * å¦‚æœä¸æ˜¯ @Configuration
+		 * ä½†å®ƒæ˜¯ @Import  @ImportResource  @Component  @ComponentScanï¼Œæ˜¯å¦å­˜åœ¨å«æœ‰ @Bean çš„æ–¹æ³•
+		 * ä¹Ÿä¼šæ ‡è®°ä¸ºå¾…è§£æ CONFIGURATION_CLASS_ATTRIBUTE = lite
 		 */
 		else if (isLiteConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);

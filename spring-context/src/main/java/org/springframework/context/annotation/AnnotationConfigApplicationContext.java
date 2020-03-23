@@ -93,7 +93,8 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 */
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		/**
-		 *
+		 * 这里的 scanner 仅仅是为了扫描我们在显式调用 context.scan("com...")起作用
+		 * 真正 spring 在扫描注解的时候，并不是这个对象完成的
 		 */
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}

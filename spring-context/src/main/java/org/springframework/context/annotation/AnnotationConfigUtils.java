@@ -132,7 +132,7 @@ public abstract class AnnotationConfigUtils {
 
 
 	/**
-	 * ×¢²áÌØ¶¨ ×¢½â ´¦ÀíÆ÷£¬Èç¹û registry ²»Í¬µÄ»°£¬¿ÉÄÜ×¢²áµÄ ºóÖÃ´¦ÀíÆ÷²»Í¬
+	 * æ³¨å†Œç‰¹å®š æ³¨è§£ å¤„ç†å™¨ï¼Œå¦‚æœ registry ä¸åŒçš„è¯ï¼Œå¯èƒ½æ³¨å†Œçš„ åç½®å¤„ç†å™¨ä¸åŒ
 	 *
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
@@ -142,7 +142,7 @@ public abstract class AnnotationConfigUtils {
 	}
 
 	/**
-	 * Îª spring BeanFactory Ìí¼ÓÖî¶àºóÖÃ´¦ÀíÆ÷
+	 * ä¸º spring BeanFactory æ·»åŠ è¯¸å¤šåç½®å¤„ç†å™¨
 	 *
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
@@ -157,21 +157,21 @@ public abstract class AnnotationConfigUtils {
 		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
 		if (beanFactory != null) {
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
-				//AnnotationAwareOrderComparator ÓÃÀ´½âÎö @OrderºÍ@Priority
+				//AnnotationAwareOrderComparator ç”¨æ¥è§£æ @Orderå’Œ@Priority
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
 			}
 			if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
-				//ContextAnnotationAutowireCandidateResolver Ìá¹©´¦ÀíÑÓ³Ù¼ÓÔØ¹©ÄÜ
+				//ContextAnnotationAutowireCandidateResolver æä¾›å¤„ç†å»¶è¿ŸåŠ è½½ä¾›èƒ½
 				beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
 			}
 		}
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 		/**
-		 * ConfigurationClassPostProcessor ÊÇ´¦Àí @Configuration µÄºóÖÃ´¦ÀíÆ÷
-		 * ÊµÏÖÁË {@link BeanDefinitionRegistryPostProcessor}½Ó¿Ú
-		 * ËûµÄÖ´ĞĞÓÅÏÈ¼¶ÊÇ×îµÍµÄ
-		 * Ôö¼ÓËüµ½ÈİÆ÷µÄÄ¿µÄ£º{@link PostProcessorRegistrationDelegate#invokeBeanFactoryPostProcessors(
+		 * ConfigurationClassPostProcessor æ˜¯å¤„ç† @Configuration çš„åç½®å¤„ç†å™¨
+		 * å®ç°äº† {@link BeanDefinitionRegistryPostProcessor}æ¥å£
+		 * ä»–çš„æ‰§è¡Œä¼˜å…ˆçº§æ˜¯æœ€ä½çš„
+		 * å¢åŠ å®ƒåˆ°å®¹å™¨çš„ç›®çš„ï¼š{@link PostProcessorRegistrationDelegate#invokeBeanFactoryPostProcessors(
 		 * 		org.springframework.beans.factory.config.ConfigurableListableBeanFactory, java.util.List)}
 		 */
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
@@ -180,7 +180,7 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 		/**
-		 * AutowiredAnnotationBeanPostProcessor ÊÇ´¦Àí @Autowired µÄºóÖÃ´¦ÀíÆ÷
+		 * AutowiredAnnotationBeanPostProcessor æ˜¯å¤„ç† @Autowired çš„åç½®å¤„ç†å™¨
 		 */
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);

@@ -74,14 +74,22 @@ class ComponentScanAnnotationParser {
 
 
 	public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, final String declaringClass) {
+		/**
+		 * 这个 scanner 才是真正去扫描包的对象，
+		 * 在 ApplicationContext 中的 scanner 只是为了显式地让我们去调用 context.scan("com")
+		 */
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.registry,
 				componentScan.getBoolean("useDefaultFilters"), this.environment, this.resourceLoader);
 
 		/**
-		 * �Զ� bean name ������
+		 * 自定 bean name 产生器
 		 */
 		Class<? extends BeanNameGenerator> generatorClass = componentScan.getClass("nameGenerator");
 		boolean useInheritedGenerator = (BeanNameGenerator.class == generatorClass);
+		/**
+		 * 名字产生器
+		 * 这里可以对不同的 @ComponentScan() 定义不同的扫描器
+		 */
 		scanner.setBeanNameGenerator(useInheritedGenerator ? this.beanNameGenerator :
 				BeanUtils.instantiateClass(generatorClass));
 
@@ -96,17 +104,26 @@ class ComponentScanAnnotationParser {
 
 		scanner.setResourcePattern(componentScan.getString("resourcePattern"));
 
+		/**
+		 * 哪写类需要过滤
+		 */
 		for (AnnotationAttributes filter : componentScan.getAnnotationArray("includeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter)) {
 				scanner.addIncludeFilter(typeFilter);
 			}
 		}
+		/**
+		 * 哪写类需要过滤
+		 */
 		for (AnnotationAttributes filter : componentScan.getAnnotationArray("excludeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter)) {
 				scanner.addExcludeFilter(typeFilter);
 			}
 		}
 
+		/**
+		 * @ComponentScan(lazyInit=true)
+		 */
 		boolean lazyInit = componentScan.getBoolean("lazyInit");
 		if (lazyInit) {
 			scanner.getBeanDefinitionDefaults().setLazyInit(true);
@@ -133,7 +150,7 @@ class ComponentScanAnnotationParser {
 			}
 		});
 		/**
-		 * ɨ��
+		 * 扫包
 		 */
 		return scanner.doScan(StringUtils.toStringArray(basePackages));
 	}

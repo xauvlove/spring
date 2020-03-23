@@ -19,6 +19,19 @@ package org.springframework.beans.factory.config;
 import org.springframework.beans.BeansException;
 
 /**
+ * 在 BeanFactory 初始化的时候执行
+ * 在 BeanPostProcessor 前执行
+ * 主要用于修改 BeanDefinition 的一些属性
+ * 	例如修改 BeanDefinition 的作用域，实例化类等等
+ *
+ * 	****************************************************************
+ * 	BeanFactoryProcessor 和 BeanPostProcessor 的区别
+ *
+ * 	1.BeanFactoryProcessor 用于对 BeanDefinition 的解析
+ * 	2.BeanPostProcessor 用于插手 BeanDefinition 的初始化和实例化
+ *
+ * 	****************************************************************
+ *
  * Allows for custom modification of an application context's bean definitions,
  * adapting the bean property values of the context's underlying bean factory.
  *

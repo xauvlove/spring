@@ -1,14 +1,12 @@
-package com.xauv.postProcessor;
+package com.xauv.imitate.aop.postProcessor;
 
-import com.xauv.proxyHandler.MyInvocationHandler;
+import com.xauv.imitate.aop.proxyHandler.MyInvocationHandler;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.PriorityOrdered;
-import org.springframework.stereotype.Component;
 import java.lang.reflect.Proxy;
 
-@Component
-public class MyAopPostProcessor implements BeanPostProcessor, PriorityOrdered {
+public class XauvAopBeanPostProcessor implements BeanPostProcessor, PriorityOrdered {
 	/**
 	 * 这里，我们很容易来插手 bean 的初始化
 	 * 可以使用代理
@@ -21,7 +19,12 @@ public class MyAopPostProcessor implements BeanPostProcessor, PriorityOrdered {
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName)
 			throws BeansException {
-		if(beanName.startsWith("xauv") && bean.getClass().isInterface()) {
+		/*if(beanName.startsWith("xauv") && bean.getClass().isInterface()) {
+			return Proxy.newProxyInstance(this.getClass().getClassLoader(),
+					bean.getClass().getInterfaces(), new MyInvocationHandler(bean));
+		}
+		return bean;*/
+		if(beanName.startsWith("xauv")) {
 			return Proxy.newProxyInstance(this.getClass().getClassLoader(),
 					bean.getClass().getInterfaces(), new MyInvocationHandler(bean));
 		}

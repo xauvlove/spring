@@ -4,7 +4,7 @@ import com.xauv.dao.MyDao;
 import org.springframework.context.annotation.Description;
 import org.springframework.stereotype.Repository;
 
-@Repository
+@Repository("xauvDaoImpl")
 @Description("It's description")
 public class MyDaoImpl implements MyDao {
 	@Override

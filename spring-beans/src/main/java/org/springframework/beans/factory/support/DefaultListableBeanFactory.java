@@ -426,10 +426,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	/**
 	 * NamedBeanHolder可以理解为一个数据结构和map差不多，里面就是存了bean的名字和bean的实例
-	 * 11这个类的注释可以点开查看
+	 * 这个类的注释可以点开查看
 	 * /7A simple holder for a given bean name plus bean instance
 	 * //一个简单的bean和名字的容器
-	 * //通过resolveNamedBean方法得到这个holder,故而需要看这个resolveNamedBean方法如何得到这个ho lder的
+	 * //通过resolveNamedBean方法得到这个holder,故而需要看这个resolveNamedBean方法如何得到这个holder的
 	 * @param requiredType
 	 * @param args
 	 * @param nonUniqueAsNull

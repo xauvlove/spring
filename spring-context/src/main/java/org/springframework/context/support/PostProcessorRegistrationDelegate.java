@@ -62,15 +62,15 @@ final class PostProcessorRegistrationDelegate {
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 			/**
-			 *  ÏÂÃæÁ½¸ö list ·Ö±ğ´æ´¢ BeanFactoryPostProcessor ºÍ BeanDefinitionRegistryPostProcessor
-			 *	ÎªÁË±£³ÖÀ©Õ¹ĞÔ£¬BeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor
-			 *	½øĞĞÁ½´Î´¦Àí
+			 *  ä¸‹é¢ä¸¤ä¸ª list åˆ†åˆ«å­˜å‚¨ BeanFactoryPostProcessor å’Œ BeanDefinitionRegistryPostProcessor
+			 *	ä¸ºäº†ä¿æŒæ‰©å±•æ€§ï¼ŒBeanDefinitionRegistryPostProcessor extends BeanFactoryPostProcessor
+			 *	è¿›è¡Œä¸¤æ¬¡å¤„ç†
 			 */
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
 			/**
-			 * ÕâÀïÊÇ ´¦Àí ÎÒÃÇ×Ô¶¨ÒåµÄ BeanFactoryPostProcessor£¬ÇÒÊÇÊÖ¶¯¼ÓÈëµ½ spring context µÄ
+			 * è¿™é‡Œæ˜¯ å¤„ç† æˆ‘ä»¬è‡ªå®šä¹‰çš„ BeanFactoryPostProcessorï¼Œä¸”æ˜¯æ‰‹åŠ¨åŠ å…¥åˆ° spring context çš„
 			 */
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
@@ -89,16 +89,16 @@ final class PostProcessorRegistrationDelegate {
 			// Separate between BeanDefinitionRegistryPostProcessors that implement
 			// PriorityOrdered, Ordered, and the rest.
 			/**
-			 * currentRegistryProcessors ´æ·Å spring ×Ô¼ºµÄ BeanPostProcessor
+			 * currentRegistryProcessors å­˜æ”¾ spring è‡ªå·±çš„ BeanPostProcessor
 			 */
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
 			/**
-			 * ¸ù¾İ bean µÄÀàĞÍ»ñÈ¡ bean name
-			 * ÕâÀïÄ¬ÈÏ»á»ñÈ¡Ò»¸ö BeanPostProcessor,¾ÍÊÇÖ®Ç°×°ÈëµÄ {@linkplain ConfigurationClassPostProcessor}
-			 * ConfigurationClassPostProcessor »á¶Ô bean ×ö³ö½âÎö£¬Èç¹û½âÎö³ö bean ÊÇ Ò»¸ö @Configuration
-			 * 		¾Í»áÔÙ´Î ½âÎöÊÇ·ñ°üº¬ @Component  @PropertySources @ComponentScans£¬ÔÙ×öÏàÓ¦µÄÊÂÇé
+			 * æ ¹æ® bean çš„ç±»å‹è·å– bean name
+			 * è¿™é‡Œé»˜è®¤ä¼šè·å–ä¸€ä¸ª BeanPostProcessor,å°±æ˜¯ä¹‹å‰è£…å…¥çš„ {@linkplain ConfigurationClassPostProcessor}
+			 * ConfigurationClassPostProcessor ä¼šå¯¹ bean åšå‡ºè§£æï¼Œå¦‚æœè§£æå‡º bean æ˜¯ ä¸€ä¸ª @Configuration
+			 * 		å°±ä¼šå†æ¬¡ è§£ææ˜¯å¦åŒ…å« @Component  @PropertySources @ComponentScansï¼Œå†åšç›¸åº”çš„äº‹æƒ…
 			 */
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
@@ -109,16 +109,27 @@ final class PostProcessorRegistrationDelegate {
 				}
 			}
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
-			//×Ô¼º¶¨Òå(Ìí¼Ó)µÄ BeanPostProcessor ºÍ spring µÄ BeanPostProcessor ºÏ²¢
-			//registryProcessors °üº¬µÄ¶¼ÊÇ BeanDefinitionRegistryPostProcessor ¶ÔÏó bean
+			//è‡ªå·±å®šä¹‰(æ·»åŠ )çš„ BeanPostProcessor å’Œ spring çš„ BeanPostProcessor åˆå¹¶
+			//registryProcessors åŒ…å«çš„éƒ½æ˜¯ BeanDefinitionRegistryPostProcessor å¯¹è±¡ bean
 			registryProcessors.addAll(currentRegistryProcessors);
-			//ÕıÊ½¶ÔËùÓĞ bean Ö´ĞĞ ºóÖÃ´¦ÀíÆ÷ (BeanDefinitionRegistryPostProcessor)
-			//×¢Òâ£¬ÕâÀïÖ´ĞĞµÄÊÇ BeanFactoryProcessor µÄ×Ó½Ó¿Ú´¦ÀíÆ÷ BeanDefinitionRegistryPostProcessor
-			//ÕâÑùµÄ»°£¬Ê×ÏÈÖ´ĞĞ×Ó½Ó¿ÚµÄ ·½·¨£¬ÏÂÃæ»¹¿ÉÒÔÖ´ĞĞ ¸¸½Ó¿ÚµÄ·½·¨£¬Õâ¾ÍÍê³ÉÁËÀ©Õ¹ĞÔ
+			//
+			/**
+			 * æ­£å¼å¯¹æ‰€æœ‰ bean æ‰§è¡Œ åç½®å¤„ç†å™¨ (BeanDefinitionRegistryPostProcessor)
+			 * æ³¨æ„ï¼Œè¿™é‡Œæ‰§è¡Œçš„æ˜¯ BeanFactoryProcessor çš„å­æ¥å£å¤„ç†å™¨ BeanDefinitionRegistryPostProcessor
+			 * è¿™æ ·çš„è¯ï¼Œé¦–å…ˆæ‰§è¡Œå­æ¥å£çš„ æ–¹æ³•ï¼Œä¸‹é¢è¿˜å¯ä»¥æ‰§è¡Œ çˆ¶æ¥å£çš„æ–¹æ³•ï¼Œè¿™å°±å®Œæˆäº†æ‰©å±•æ€§
+			 *
+			 * è¿™é‡Œï¼Œå¦‚æœæˆ‘ä»¬ä½¿ç”¨ java-config æ¨¡å¼å¼€å¯ springï¼Œé‚£ä¹ˆè¿™é‡Œå°±ä¼šå­˜åœ¨è§£æï¼š
+			 * 		{@link ConfigurationClassPostProcessor} æ¥è§£ææˆ‘ä»¬çš„é…ç½®ç±»ï¼šAppConfig
+			 */
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
+			//æ‰§è¡Œæ‰€æœ‰çš„ BeanDefinitionRegistryPostProcessorï¼Œæ¸…é™¤
 			currentRegistryProcessors.clear();
 
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
+			/**
+			 * å¯èƒ½åœ¨æ‰§è¡Œä¸Šé¢çš„ä»£ç ï¼Œä¹Ÿå³æ‰§è¡Œ BeanFactoryProcessor çš„æ—¶å€™åˆåŠ å…¥äº†æ–°çš„
+			 * è¿™é‡Œæ‹¿å‡ºæ–°çš„å†æ¬¡æ‰§è¡Œ
+			 */
 			postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
 				if (!processedBeans.contains(ppName) && beanFactory.isTypeMatch(ppName, Ordered.class)) {

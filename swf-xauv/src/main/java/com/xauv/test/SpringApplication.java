@@ -20,7 +20,7 @@ public class SpringApplication {
 		// 注册 {@link Configuration 类型}
 		context.register(AppConfigForAnnotation.class);
 		context.refresh();
-		MyDao myDaoImpl = (MyDao)context.getBean("myDaoImpl");
+		MyDao myDaoImpl = (MyDao)context.getBean("xauvDaoImpl");
 		myDaoImpl.doDao();
 		//System.out.println(context.getBean("mybatisDao"));
 		/*Object mybatisDao = context.getBean("mybatisDao");

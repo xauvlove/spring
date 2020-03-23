@@ -430,7 +430,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
 			/**
-			 * 下面这行代码完成扫描
+			 * 下面这行代码完成扫描  使用 ASM 技术
 			 * 他把包下所有的class都装到 resources 里
 			 * 因此，我们在建包的是时候不能建立如：com，org，等等别人已经使用过的
 			 * 因为如果这么建包，这个Resource[]将会非常大

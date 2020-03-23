@@ -281,9 +281,23 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
 				candidate.setScope(scopeMetadata.getScopeName());
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
+				/**
+				 * AbstractBeanDefinition 的范围很广
+				 * 基本上 BeanDefinition 都是 AbstractBeanDefinition 的
+				 * 因此大部分 BeanDefinition 都会进入到下面逻辑
+				 *
+				 * 这里主要是给 BeanDefinition 设置一下spring的默认值
+				 */
 				if (candidate instanceof AbstractBeanDefinition) {
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
+				/**
+				 * 如果这个 bean 是被加了注解的，那么接下来就是要去处理注解设置注解值入 BeanDefinition
+				 * 被扫描出的 bean 是 ScannedGenericBeanDefinition，也属于 AnnotatedBeanDefinition
+				 * 走下面逻辑
+				 *
+				 * 这里主要是处理 bean 我们给显式配置的注解，将 上面 spring 默认值覆盖
+				 */
 				if (candidate instanceof AnnotatedBeanDefinition) {
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
