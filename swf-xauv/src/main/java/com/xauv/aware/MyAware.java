@@ -1,4 +1,4 @@
-package com.xauv;
+package com.xauv.aware;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;

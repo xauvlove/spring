@@ -783,6 +783,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		 * 			这个BeanFactoryPostProcessor是我们自己实现的 且没有加 @Component 的
 		 * 				而且，是在 springApplicationContext 调用 refresh() 前，手动加入到 springApplicationContext中的
 		 * 						springApplicationContext.addBeanFactoryPostProcessor(myBeanFactoryProcessor)
+		 * 						也就是加入到了一个 List 中，这个 List 与其它所有的 BeanFactoryProcessor 独立
 		 */
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 

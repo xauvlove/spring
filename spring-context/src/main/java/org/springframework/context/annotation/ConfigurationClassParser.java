@@ -251,6 +251,7 @@ class ConfigurationClassParser {
 		}
 		while (sourceClass != null);
 
+		//添加到配置类 map
 		this.configurationClasses.put(configClass, configClass);
 	}
 

@@ -67,6 +67,9 @@ final class PostProcessorRegistrationDelegate {
 			 *	进行两次处理
 			 */
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
+			/**
+			 * 下面这个 BeanDefinitionRegistryPostProcessor 是关于 配置注册 的 processor
+			 */
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
 			/**
@@ -89,7 +92,8 @@ final class PostProcessorRegistrationDelegate {
 			// Separate between BeanDefinitionRegistryPostProcessors that implement
 			// PriorityOrdered, Ordered, and the rest.
 			/**
-			 * currentRegistryProcessors 存放 spring 自己的 BeanPostProcessor
+			 *
+			 *
 			 */
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
@@ -109,7 +113,6 @@ final class PostProcessorRegistrationDelegate {
 				}
 			}
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
-			//自己定义(添加)的 BeanPostProcessor 和 spring 的 BeanPostProcessor 合并
 			//registryProcessors 包含的都是 BeanDefinitionRegistryPostProcessor 对象 bean
 			registryProcessors.addAll(currentRegistryProcessors);
 			//
