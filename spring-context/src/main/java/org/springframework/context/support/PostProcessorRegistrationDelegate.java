@@ -164,6 +164,15 @@ final class PostProcessorRegistrationDelegate {
 			}
 
 			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
+			/**
+			 * 刚才执行的是 BeanFactoryPostProcessor 的子类 BeanDefinitionRegistryPostProcessor 中的方法
+			 * 现在正式执行 BeanFactoryPostProcessor 中的方法
+			 * 对两个 list 执行
+			 *
+			 * tip: 这里会执行 {@link ConfigurationClassPostProcessor#postProcessBeanFactory(
+			 * 		org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}
+			 * 	使用 CGLIB
+			 */
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
 		}

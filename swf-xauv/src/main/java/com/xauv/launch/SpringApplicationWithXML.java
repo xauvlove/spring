@@ -1,4 +1,4 @@
-package com.xauv.test;
+package com.xauv.launch;
 
 import com.xauv.dao.SpringXMLDao;
 import org.springframework.context.support.ClassPathXmlApplicationContext;

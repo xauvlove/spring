@@ -9,6 +9,6 @@ import org.springframework.stereotype.Component;
 public class MyAware implements ApplicationContextAware {
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		//System.out.println("MyAware");
+		System.out.println("MyAware");
 	}
 }

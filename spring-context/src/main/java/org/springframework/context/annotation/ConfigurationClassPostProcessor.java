@@ -235,6 +235,15 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	/**
 	 * Prepare the Configuration classes for servicing bean requests at runtime
 	 * by replacing them with CGLIB-enhanced subclasses.
+	 *
+	 * 这里使用了 CGLIB 代理，主要作用在于：
+	 * 1.在遇到全注解 @Configuration 的时候，对 @Bean 进行代理改造
+	 * 如果我们在多个地方多次使用 @Bean 产生同样的 bean，或者多次使用到同样的 bean，
+	 * 我们并不希望每次都 new 一个 bean，那么可以想到使用工厂的方法，每次从 factory 里面获取 bean
+	 * 如果获取不到，再在这个 factory new 出一个 bean，并放入缓存（其实就是 beanDefinitionMap），
+	 * 如果可以获取得到，那么直接从缓存里面拿出来就行，不需要每次都 new 一个新 bean --- （注意：这里说的 bean 其实是 BeanDefinition）
+	 *
+	 * 2.
 	 */
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
@@ -396,6 +405,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		Map<String, AbstractBeanDefinition> configBeanDefs = new LinkedHashMap<>();
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
 			BeanDefinition beanDef = beanFactory.getBeanDefinition(beanName);
+			/**
+			 * 如果我们对某个类加了 @Configuration，在解析这个 bean 的时候，会把 bean 标记为 full
+			 * 那么下面就会进行 CGLIB代理
+			 */
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef)) {
 				if (!(beanDef instanceof AbstractBeanDefinition)) {
 					throw new BeanDefinitionStoreException("Cannot enhance @Configuration bean definition '" +

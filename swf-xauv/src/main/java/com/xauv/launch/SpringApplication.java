@@ -1,6 +1,5 @@
-package com.xauv.test;
+package com.xauv.launch;
 
-import com.xauv.MyBeanDefinitionRegistryPostProcessor;
 import com.xauv.config.AppConfigForAnnotation;
 import com.xauv.dao.MyDao;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -20,7 +19,6 @@ public class SpringApplication {
 		context.getEnvironment().setActiveProfiles("javaConfig");
 		// 注册 {@link Configuration 类型}
 		context.register(AppConfigForAnnotation.class);
-		context.addBeanFactoryPostProcessor(new MyBeanDefinitionRegistryPostProcessor());
 		context.refresh();
 		MyDao myDaoImpl = (MyDao)context.getBean("xauvDaoImpl");
 		myDaoImpl.doDao();

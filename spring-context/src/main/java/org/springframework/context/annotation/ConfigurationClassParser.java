@@ -223,7 +223,7 @@ class ConfigurationClassParser {
 		ConfigurationClass existingClass = this.configurationClasses.get(configClass);
 		if (existingClass != null) {
 			/**
-			 *	处理 @Import
+			 *	处理 @Imported
 			 *  检查是否这个 @Configuration 被其他类所 @Import
 			 *  如果被其它 bean 所 @Import 这里就不需要对这个 bean 进行解析
 			 *  因为 在解析其它 bean 的时候 会解析这个 bean，如果这里进行解析，那么就会造成多次解析
@@ -252,6 +252,10 @@ class ConfigurationClassParser {
 		while (sourceClass != null);
 
 		//添加到配置类 map
+		/**
+		 * 被扫描到的普通类在被扫描完成之后就被注册了
+		 * 而被扫描到的@Import是先放到 configurationClasses 里面，到后面才进行注册
+		 */
 		this.configurationClasses.put(configClass, configClass);
 	}
 
@@ -309,6 +313,9 @@ class ConfigurationClassParser {
 					if (bdCand == null) {
 						bdCand = holder.getBeanDefinition();
 					}
+					/**
+					 * 判断被扫描出的类 是否是 @Configuration
+					 */
 					if (ConfigurationClassUtils.checkConfigurationClassCandidate(bdCand, this.metadataReaderFactory)) {
 						parse(bdCand.getBeanClassName(), holder.getBeanName());
 					}
@@ -327,12 +334,17 @@ class ConfigurationClassParser {
 		 * @Import  共可有三种情况
 		 * {@link Import}
 		 *
+		 *
+		 *
 		 * 如果发现是 @Import(ImportSelector)，就会回调 ImportSelector 中的方法拿到 bean 的类名
 		 * 	使用类名来生成 bean，再对这个生成的 bean 进行递归解析
 		 */
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
 		// Process any @ImportResource annotations
+		/**
+		 * 处理 @ImportResource(xml)
+		 */
 		AnnotationAttributes importResource =
 				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
 		if (importResource != null) {
@@ -345,6 +357,9 @@ class ConfigurationClassParser {
 		}
 
 		// Process individual @Bean methods
+		/**
+		 * 处理 @Bean
+		 */
 		Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
 		for (MethodMetadata methodMetadata : beanMethods) {
 			configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));
@@ -570,6 +585,17 @@ class ConfigurationClassParser {
 		}
 	}
 
+	/**
+	 *  {@link Import} 共有三种情况
+	 * 	如果是 @Import(ImportSelector)：添加到 configurationClasses 中，
+	 * 	如果是 @Import(ImportBeanDefinitionRegistrar)：添加到 importBeanDefinitionRegistrars 中，
+	 * 	如果是 @Import(普通类)：使用 {@link ConfigurationClassParser#processConfigurationClass(
+	 * 				org.springframework.context.annotation.ConfigurationClass)} 继续当作 @Configuration 处理
+	 * @param configClass
+	 * @param currentSourceClass
+	 * @param importCandidates
+	 * @param checkForCircularImports
+	 */
 	private void processImports(ConfigurationClass configClass, SourceClass currentSourceClass,
 			Collection<SourceClass> importCandidates, boolean checkForCircularImports) {
 

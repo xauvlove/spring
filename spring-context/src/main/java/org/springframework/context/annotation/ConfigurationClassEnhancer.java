@@ -119,11 +119,31 @@ class ConfigurationClassEnhancer {
 	 */
 	private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader classLoader) {
 		Enhancer enhancer = new Enhancer();
+		/**
+		 * 增强父类，因为 CGLIB 是继承父类而产生代理
+		 */
 		enhancer.setSuperclass(configSuperClass);
+		/**
+		 * 增强一个接口，这个接口实现了 BeanFactoryAware 接口
+		 * 可以直接拿到 BeanFactory
+		 */
 		enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
 		enhancer.setUseFactory(false);
 		enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
+		/**
+		 * CGLIB 生成类的策略
+		 * 这里主要是给代理类增加了一个属性 $$beanFactory
+		 * 再加上之前代理类实现的接口 EnhancedConfiguration
+		 * 我们就可以给 $$beanFactory 设置当前 spring 的BeanFactory
+		 * 可以操作 的BeanFactory
+		 *
+		 * $$beanFactory 的作用主要是：我们获取对象的时候，直接从 $$beanFactory 中 get 获取
+		 * 		如果获取失败，那么再 new 出这个 bean，这样的话，就避免了重复 new bean
+		 */
 		enhancer.setStrategy(new BeanFactoryAwareGeneratorStrategy(classLoader));
+		/**
+		 * 设置方法拦截
+		 */
 		enhancer.setCallbackFilter(CALLBACK_FILTER);
 		enhancer.setCallbackTypes(CALLBACK_FILTER.getCallbackTypes());
 		return enhancer;
@@ -221,6 +241,9 @@ class ConfigurationClassEnhancer {
 			ClassEmitterTransformer transformer = new ClassEmitterTransformer() {
 				@Override
 				public void end_class() {
+					/**
+					 * 代理类中新声明一个属性 $$beanFactory
+					 */
 					declare_field(Constants.ACC_PUBLIC, BEAN_FACTORY_FIELD, Type.getType(BeanFactory.class), null);
 					super.end_class();
 				}
@@ -271,6 +294,9 @@ class ConfigurationClassEnhancer {
 		@Override
 		@Nullable
 		public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+			/**
+			 * 这里主要是将代理对象的 $$factory 属性给填充一下，也即属性赋值
+			 */
 			Field field = ReflectionUtils.findField(obj.getClass(), BEAN_FACTORY_FIELD);
 			Assert.state(field != null, "Unable to find generated BeanFactory field");
 			field.set(obj, args[0]);
@@ -316,7 +342,23 @@ class ConfigurationClassEnhancer {
 		public Object intercept(Object enhancedConfigInstance, Method beanMethod, Object[] beanMethodArgs,
 					MethodProxy cglibMethodProxy) throws Throwable {
 
+			/**
+			 * 由 CGLIB 代理
+			 * enhancedConfigInstance 是代理对象（被代理对象的子类）
+			 * enhancedConfigInstance 中存在 BeanFactory
+			 *
+			 * beanMethod 是目标对象存在的方法（父类的方法）
+			 *
+			 * beanMethodArgs 方法执行参数
+			 *
+			 * cglibMethodProxy 是代理对象的方法
+			 */
 			ConfigurableBeanFactory beanFactory = getBeanFactory(enhancedConfigInstance);
+
+			/**
+			 * 得到 bean name
+			 * 如果没指定 bean name 那么使用方法名作为 bean name
+			 */
 			String beanName = BeanAnnotationHelper.determineBeanNameFor(beanMethod);
 
 			// Determine whether this bean is a scoped-proxy
@@ -334,8 +376,30 @@ class ConfigurationClassEnhancer {
 			// proxy that intercepts calls to getObject() and returns any cached bean instance.
 			// This ensures that the semantics of calling a FactoryBean from within @Bean methods
 			// is the same as that of referring to a FactoryBean within XML. See SPR-6602.
+			/**
+			 * 判断是否返回 factoryBean，非常严谨
+			 */
 			if (factoryContainsBean(beanFactory, BeanFactory.FACTORY_BEAN_PREFIX + beanName) &&
 					factoryContainsBean(beanFactory, beanName)) {
+				/**
+				 * 如果是 factoryBean，先得到这个对象
+				 *
+				 * 需要注意的是，spring 在扫包的时候，会优先将 bean 扫描出来（加了 @Component）
+				 * 如果扫描到一个 factoryBean，那么会先将其加入到 beanDefinitionMap
+				 *
+				 * 后续对 @Bean 解析的时候，如果 @Bean 返回的是一个 factoryBean，
+				 * 	1.如果这个 factoryBean 早就被加入到 beanDefinitionMap 中，那么就可以获取到
+				 * 	2.如果这个 factoryBean 没有加类似于 @Component 注解，那么不会加入到 beanDefinitionMap 中，
+				 * 		我们对其进行 new 也没有关系
+				 * -------------------------------------------------------------
+				 * 如果是 factoryBean，FactoryBean 需要重写 getObject()方法来获取 bean
+				 * 这个 getObject()方法来获取的 bean 也需要被代理，否则它会多次创建对象
+				 * 因此，{@link BeanMethodInterceptor#enhanceFactoryBean(
+				 * 		java.lang.Object, java.lang.Class,
+				 * 		org.springframework.beans.factory.config.ConfigurableBeanFactory,
+				 * 		java.lang.String)}
+				 * 	就是对 getObject()方法来获取的 bean 进行代理
+				 */
 				Object factoryBean = beanFactory.getBean(BeanFactory.FACTORY_BEAN_PREFIX + beanName);
 				if (factoryBean instanceof ScopedProxyFactoryBean) {
 					// Scoped proxy factory beans are a special case and should not be further proxied

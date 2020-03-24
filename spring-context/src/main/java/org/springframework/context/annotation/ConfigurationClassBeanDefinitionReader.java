@@ -134,9 +134,15 @@ class ConfigurationClassBeanDefinitionReader {
 			return;
 		}
 
+		/**
+		 * 如果一个类是被 @Import 的，会优先注册
+		 */
 		if (configClass.isImported()) {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
+		/**
+		 * 配置类中存在 @Bean 方法，进行注册
+		 */
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
@@ -214,11 +220,17 @@ class ConfigurationClassBeanDefinitionReader {
 
 		if (metadata.isStatic()) {
 			// static @Bean method
+			/**
+			 * 静态 @Bean，设置 bean 的名字为方法名
+			 */
 			beanDef.setBeanClassName(configClass.getMetadata().getClassName());
 			beanDef.setFactoryMethodName(methodName);
 		}
 		else {
 			// instance @Bean method
+			/**
+			 * 非静态 @Bean 设置一个 FactoryBean
+			 */
 			beanDef.setFactoryBeanName(configClass.getBeanName());
 			beanDef.setUniqueFactoryMethodName(methodName);
 		}
