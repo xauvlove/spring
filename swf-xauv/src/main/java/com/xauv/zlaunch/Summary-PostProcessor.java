@@ -35,5 +35,3 @@ package com.xauv.zlaunch;
  * 5.FactoryBean
  * 	对 Bean 进行替换，但无法改造 BeanDefinition
  */
-public class Summary {
-}

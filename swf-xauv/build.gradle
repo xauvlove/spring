@@ -14,4 +14,23 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile(project(":spring-context"))
+
+   /* compile("log4j:log4j:1.2.17")
+    compile("commons-logging:commons-logging:1.2")*/
+
+    /*slf4j 需要设置一个绑定器，与其它日志工具进行绑定*/
+    compile("org.slf4j:slf4j-api:1.7.25")
+    /*compile("org.slf4j:slf4j-jdk14:1.7.25")*/
+    /*这个是绑定 log4j 的，自带一个 log4j*/
+    compile("org.slf4j:slf4j-log4j12:1.7.25")
+
+    /*日志桥接，将jcl桥接到slf4j来处理
+    * 如果项目用到的是 jcl 来操作日志
+    * 那么增加这个桥接器就表明：将 jcl 转换到 slf4j 来操作日志
+    *
+    * 不仅有这个桥接器，还有很多
+    *   比如桥接 log4j：log4j-over-slf4j
+    *       这个桥接器自带了 log4j，因此，需要去除我们依赖的 log4j
+    * */
+    compile("org.slf4j:jcl-over-slf4j:1.7.25")
 }

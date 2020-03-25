@@ -25,6 +25,5 @@ public class SpringApplication {
 		//System.out.println(context.getBean("mybatisDao"));
 		/*Object mybatisDao = context.getBean("mybatisDao");
 		System.out.println(mybatisDao);*/
-
 	}
 }
