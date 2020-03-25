@@ -23,7 +23,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * 1. BeanPostProcessor 是 Spring 提供的扩展点之一
- * 实现 BeanPostProcessor 接口，可以插手 Bean 的实例化过程
+ * 实现 BeanPostProcessor 接口，可以插手 Bean 的实例化过程 (bean 还没有放到 singletonObjectMap前)
  * BeanPostProcessor 可以实现多次，再通过实现 PriorityOrdered 接口，设置处理器执行优先级
  * AOP就是利用了 BeanPostProcessor 来切入 bean，与IOC建立联系
  *

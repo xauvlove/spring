@@ -526,6 +526,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 *		对bean进行后置处理，扫包加入到 beanDefinitionMap
 	 *  6.@{@link AbstractApplicationContext#registerBeanPostProcessors(
 	 *  	org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}
+	 *  	注册 bean 的拦截器
 	 *
 	 * @throws BeansException
 	 * @throws IllegalStateException

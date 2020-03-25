@@ -357,6 +357,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			}
 			/**
 			 * 将已经处理的 @Import 放到 beanDefinitionMap
+			 *
+			 * 除了普通类 （加了 @Component）
+			 * 其它类全都在这里进行处理
 			 */
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);

@@ -23,25 +23,25 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- *   ¶ÔÓÚ @Import()£ºº¬ÒåÔÚÓÚ×¢²áÒ»¸öÀà×÷Îª bean
- *   		¿ÉÒÔĞ´£º1.@Import(Class),´«ÈëÒ»¸öÆÕÍ¨Àà(¿ÉÒÔÊÇ bean)
- *   			   2.@Import(ImportSelector)£¬
+ *   å¯¹äº @Import()ï¼šå«ä¹‰åœ¨äºæ³¨å†Œä¸€ä¸ªç±»ä½œä¸º bean
+ *   		å¯ä»¥å†™ï¼š1.@Import(Class),ä¼ å…¥ä¸€ä¸ªæ™®é€šç±»(å¯ä»¥æ˜¯ bean)
+ *   			   2.@Import(ImportSelector)ï¼Œ
  *   			   3.@Import(ImportBeanDefinitionRegistrar)
  *
- * 	¶ÔÓÚ 1£º´«ÈëÆÕÍ¨Àà
- * 	¶ÔÓÚ 2£º×Ô¼º¶¨ÒåÒ»¸öÀà£¬ÊµÏÖ ImportSelector ½Ó¿Ú£¬ÖØĞ´·½·¨ ·µ»Ø¶à¸öÀàÂ·¾¶£¨ºÍ 1 µÈÍ¬£©
- * 	¶ÔÓÚ 3£º
+ * 	å¯¹äº 1ï¼šä¼ å…¥æ™®é€šç±»
+ * 	å¯¹äº 2ï¼šè‡ªå·±å®šä¹‰ä¸€ä¸ªç±»ï¼Œå®ç° ImportSelector æ¥å£ï¼Œé‡å†™æ–¹æ³• è¿”å›å¤šä¸ªç±»è·¯å¾„ï¼ˆå’Œ 1 ç­‰åŒï¼‰
+ * 	å¯¹äº 3ï¼š
  *
- * ¶ÔÓÚ×¢²á bean£º
- * 	1.register(Class),ĞèÒª´«ÈëÀà
- * 	2.scan("com.xauv"),ĞèÒª´«Èë°üÂ·¾¶
- * 	¶ÔÓÚ1£¬2 ÎÒÃÇÎŞ·¨²ÎÓë Class ±ä³É BeanDefinition µÄ¹ı³Ì£¬3 ¿ÉÒÔ½â¾ö
- * 	3.@Import(ImportBeanDefinitionRegistrar),ÎÒÃÇ¿ÉÒÔÖ±½ÓÍù beanDefinitionMapÌí¼Ó beanDefinition
- *  Mybatis ÖĞµÄ @MapperScan() É¨Ãè mapper<½Ó¿Ú> ±ä³É¶ÔÏó ´æ·ÅÔÚ spring ÈİÆ÷£¬¾ÍÊÇÊ¹ÓÃ 3 ÊµÏÖµÄ
+ * å¯¹äºæ³¨å†Œ beanï¼š
+ * 	1.register(Class),éœ€è¦ä¼ å…¥ç±»
+ * 	2.scan("com.xauv"),éœ€è¦ä¼ å…¥åŒ…è·¯å¾„
+ * 	å¯¹äº1ï¼Œ2 æˆ‘ä»¬æ— æ³•å‚ä¸ Class å˜æˆ BeanDefinition çš„è¿‡ç¨‹ï¼Œ3 å¯ä»¥è§£å†³
+ * 	3.@Import(ImportBeanDefinitionRegistrar),æˆ‘ä»¬å¯ä»¥ç›´æ¥å¾€ beanDefinitionMapæ·»åŠ  beanDefinition
+ *  Mybatis ä¸­çš„ @MapperScan() æ‰«æ mapper<æ¥å£> å˜æˆå¯¹è±¡ å­˜æ”¾åœ¨ spring å®¹å™¨ï¼Œå°±æ˜¯ä½¿ç”¨ 3 å®ç°çš„
  *
- *  Èç¹û @MapperScan() É¨Ãèµ½ mapper ½Ó¿Ú£¬ĞèÒª½«Æä±äÎª¶ÔÏó£¬ÈçºÎ·Åµ½ spring ÈİÆ÷ÖĞÊÇ¸öÎÊÌâ
- *  ÒòÎª mybatis ÔÚÉ¨Ãè mapper µÄÊ±ºò£¬spring »·¾³ÒÑ¾­³õÊ¼Íê±ÏÁË£¬ÎÒÃÇÎŞÂÛÓÃÊ²Ã´·½·¨¶¼ÎŞ·¨Íù spring ÈİÆ÷µÄ BeanDefinitionMap Ìí¼ÓÆäÔªËØ
- *  3 ¿ÉÒÔ£¬Ëü¿ÉÒÔÔÚ spring ÈİÆ÷³õÊ¼»¯Íê±Ïºó ¶¯Ì¬Íù BeanDefinitionMap Ìí¼Ó BeanDefinition
+ *  å¦‚æœ @MapperScan() æ‰«æåˆ° mapper æ¥å£ï¼Œéœ€è¦å°†å…¶å˜ä¸ºå¯¹è±¡ï¼Œå¦‚ä½•æ”¾åˆ° spring å®¹å™¨ä¸­æ˜¯ä¸ªé—®é¢˜
+ *  å› ä¸º mybatis åœ¨æ‰«æ mapper çš„æ—¶å€™ï¼Œspring ç¯å¢ƒå·²ç»åˆå§‹å®Œæ¯•äº†ï¼Œæˆ‘ä»¬æ— è®ºç”¨ä»€ä¹ˆæ–¹æ³•éƒ½æ— æ³•å¾€ spring å®¹å™¨çš„ BeanDefinitionMap æ·»åŠ å…¶å…ƒç´ 
+ *  3 å¯ä»¥ï¼Œå®ƒå¯ä»¥åœ¨ spring å®¹å™¨åˆå§‹åŒ–å®Œæ¯•å åŠ¨æ€å¾€ BeanDefinitionMap æ·»åŠ  BeanDefinition
  *
  *
  *

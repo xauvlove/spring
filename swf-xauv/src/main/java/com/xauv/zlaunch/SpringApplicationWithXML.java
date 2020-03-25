@@ -1,4 +1,4 @@
-package com.xauv.launch;
+package com.xauv.zlaunch;
 
 import com.xauv.dao.SpringXMLDao;
 import org.springframework.context.support.ClassPathXmlApplicationContext;

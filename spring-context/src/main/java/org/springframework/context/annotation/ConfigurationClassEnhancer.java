@@ -95,6 +95,10 @@ class ConfigurationClassEnhancer {
 	 * @return the enhanced subclass
 	 */
 	public Class<?> enhance(Class<?> configClass, @Nullable ClassLoader classLoader) {
+		/**
+		 * 判断这个类是否已经被代理过
+		 * 如果被代理过，那么它就已经实现了 EnhancedConfiguration extends BeanFactoryAware 接口
+		 */
 		if (EnhancedConfiguration.class.isAssignableFrom(configClass)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug(String.format("Ignoring request to enhance %s as it has " +

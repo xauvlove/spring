@@ -1,4 +1,4 @@
-package com.xauv.launch;
+package com.xauv.zlaunch;
 
 import com.xauv.config.AppConfigForAnnotation;
 import com.xauv.dao.MyDao;
