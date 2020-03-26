@@ -82,6 +82,8 @@ final class LogAdapter {
 	/**
 	 * Create an actual {@link Log} instance for the selected API.
 	 * @param name the logger name
+	 *
+	 * 注意，spring5 的这里的 LOG4J 是 LOG4J2
 	 */
 	public static Log createLog(String name) {
 		switch (logApi) {
