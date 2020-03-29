@@ -1,7 +1,6 @@
 package com.xauv.mybatis.zlaunch;
 
 import com.xauv.mybatis.mapper.UserMapper;
-import com.xauv.mybatis.pojo.User;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;

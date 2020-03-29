@@ -108,6 +108,10 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 	}
 
 
+	/**
+	 * 产生代理，通过字节码
+	 * @return
+	 */
 	@Override
 	public Object getProxy() {
 		return getProxy(ClassUtils.getDefaultClassLoader());

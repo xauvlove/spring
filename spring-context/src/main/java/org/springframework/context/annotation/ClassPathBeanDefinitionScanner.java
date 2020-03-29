@@ -261,6 +261,11 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	}
 
 	/**
+	 * 这里，不仅 spring 会扫描注解类
+	 * mybatis 也会调用这个方法进行 mapper 的扫描
+	 * mybatis 的扫描器： {org.mybatis.spring.mapper.ClassPathMapperScanner}
+	 * 	继承了这个类，并重写了一些方法，可以完成自己的类扫描注册（注册到 beanDefinitionMap）
+	 *
 	 * Perform a scan within the specified base packages,
 	 * returning the registered bean definitions.
 	 * <p>This method does <i>not</i> register an annotation config processor
@@ -301,6 +306,9 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 				if (candidate instanceof AnnotatedBeanDefinition) {
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
+				/**
+				 * 检查重复
+				 */
 				if (checkCandidate(beanName, candidate)) {
 					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
 					definitionHolder =

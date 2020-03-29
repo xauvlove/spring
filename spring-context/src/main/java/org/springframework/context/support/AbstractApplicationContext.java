@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.CachedIntrospectionResults;
 import org.springframework.beans.factory.BeanFactory;
@@ -515,18 +516,43 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/**
 	 * 执行步骤：
 	 * 	1.{@link AbstractApplicationContext#prepareRefresh()}准备 spring application context
-	 * 	2.@{@link AbstractApplicationContext#obtainFreshBeanFactory()}获取 bean factory
+	 *
+	 * 	2.{@link AbstractApplicationContext#obtainFreshBeanFactory()}获取 bean factory
+	 *
 	 *	3.@{@link AbstractApplicationContext#prepareBeanFactory(
 	 *		org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}
 	 *		填充 BeanFactory，主要是增加了很多的 BeanPostProcessor
-	 *	4.@{@link AbstractApplicationContext#postProcessBeanFactory(
+	 *
+	 *	4.{@link AbstractApplicationContext#postProcessBeanFactory(
 	 *		org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}空方法
-	 *	5.@{@link AbstractApplicationContext#invokeBeanFactoryPostProcessors(
+	 *
+	 *	5.{@link AbstractApplicationContext#invokeBeanFactoryPostProcessors(
 	 *		org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}
 	 *		对bean进行后置处理，扫包加入到 beanDefinitionMap
-	 *  6.@{@link AbstractApplicationContext#registerBeanPostProcessors(
+	 *
+	 *  6.{@link AbstractApplicationContext#registerBeanPostProcessors(
 	 *  	org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}
-	 *  	注册 bean 的拦截器
+	 *  	注册 bean 的拦截器(后置处理器)，DefaultListableBeanFactory 有一个 List 中存放 BeanPostProcessor
+	 *  	这一步就是将所有的 BeanPostProcessor 全部添加到这个 List
+	 *  	- 首先在 beanDefinitionMap 里面找（beanDefinitionMap 已经添加过一些）
+	 *  	- 然后添加其它一些
+	 *
+	 *
+	 *  	- 如果开启 AOP，那么会增加一个后置处理器 {@link AnnotationAwareAspectJAutoProxyCreator}
+	 *  	  将 bean 变为代理
+	 *  7.{@link AbstractApplicationContext#initMessageSource()}国际化
+	 *
+	 *  8.{@link AbstractApplicationContext#initApplicationEventMulticaster()} spring 事件
+	 *
+	 *  9.{@link AbstractApplicationContext#onRefresh()} 空壳方法，spring 后续版本实现
+	 *
+	 *  10.{@link AbstractApplicationContext#registerListeners()}
+	 *
+	 *  11.{@link AbstractApplicationContext#finishBeanFactoryInitialization(
+	 *  	org.springframework.beans.factory.config.ConfigurableListableBeanFactory)}
+	 *  	bean 实例化的方法，
+	 *
+	 *  12.{@link AbstractApplicationContext#finishRefresh()}
 	 *
 	 * @throws BeansException
 	 * @throws IllegalStateException
@@ -946,6 +972,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
+		/**
+		 * 下面是AspectJ 织入过程，静态织入，在编译时织入
+		 * 而 spring aop 是动态织入的，在运行时织入
+		 */
 		String[] weaverAwareNames = beanFactory.getBeanNamesForType(LoadTimeWeaverAware.class, false, false);
 		for (String weaverAwareName : weaverAwareNames) {
 			getBean(weaverAwareName);
@@ -958,6 +988,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
+		/**
+		 * bean 实例化过程
+		 */
 		beanFactory.preInstantiateSingletons();
 	}
 

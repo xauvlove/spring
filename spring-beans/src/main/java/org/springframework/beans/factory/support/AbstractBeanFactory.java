@@ -243,7 +243,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		 * 通过 name 获取 beanName
 		 * 1.name可能会以 & 开头，表明使用者要获取 FactoryBean 本身
 		 * 而不是获取 FactoryBean 所实现的 bean，
-		 * FactoryBean 在纳入 spring ioc 容器的时候，存储方式和 普通 bean 一致 <beanName, bean></>
+		 * FactoryBean 在纳入 spring ioc 容器的时候，存储方式和 普通 bean 一致 <beanName, bean>
 		 * 但是 存储的 beanName 没有 & 字符，因此需要将 & 去除 才能获取 bean（FactoryBean本身）
 		 * 2.别名的问题
 		 */
@@ -251,6 +251,15 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		Object bean;
 
 		// Eagerly check singleton cache for manually registered singletons.
+		/**
+		 * 首先，spring 实例化 bean 的时候会先在容器中搜索
+		 * 如果能搜索到，就不会创建了
+		 *
+		 * 实例化 bean 之前先 get 一次：
+		 * 	一般情况下（一般的 bean ），在逐个实例化 bean 的时候，这里搜索肯定是空
+		 * 	有一种情况可能不是空，就是 lazyInit = true
+		 *
+		 */
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -262,9 +271,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
+			//可以搜索到，直接返回
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 
+		/**
+		 * 如果在容器中搜索不到
+		 * 执行下面流程
+		 */
 		else {
 			// Fail if we're already creating this bean instance:
 			// We're assumably within a circular reference.
@@ -273,6 +287,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			// Check if bean definition exists in this factory.
+			/**
+			 * 很少对 BeanFactory 设置 parent
+			 */
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
@@ -294,6 +311,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 			}
 
+			/**
+			 * 添加到 alreadyCreated Set 集合中，表示 bean 已经创建，防止重复创建
+			 */
 			if (!typeCheckOnly) {
 				markBeanAsCreated(beanName);
 			}
@@ -303,6 +323,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
+				/**
+				 * 依赖，如果存在依赖
+				 *
+				 */
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
@@ -323,6 +347,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 				// Create bean instance.
 				if (mbd.isSingleton()) {
+					/**
+					 * 实例化 bean
+					 */
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							return createBean(beanName, mbd, args);

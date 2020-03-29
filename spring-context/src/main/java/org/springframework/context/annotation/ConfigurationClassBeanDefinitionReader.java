@@ -35,13 +35,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.groovy.GroovyBeanDefinitionReader;
 import org.springframework.beans.factory.parsing.SourceExtractor;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinitionReader;
-import org.springframework.beans.factory.support.BeanDefinitionReader;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanNameGenerator;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.support.*;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.ConfigurationCondition.ConfigurationPhase;
 import org.springframework.core.annotation.AnnotationAttributes;
@@ -222,6 +216,16 @@ class ConfigurationClassBeanDefinitionReader {
 			// static @Bean method
 			/**
 			 * 静态 @Bean，设置 bean 的名字为方法名
+			 *
+			 * 如果 @Bean 加了 static 关键字
+			 * 就相当于在 xml 中配置了一个 factory-method
+			 * 在创建 bean 的时候会和不加 static 的 bean 创建过程不同：
+			 * {@link AbstractAutowireCapableBeanFactory#createBeanInstance(
+			 * java.lang.String, org.springframework.beans.factory.support.RootBeanDefinition,
+			 * java.lang.Object[])}
+			 * {@link AbstractAutowireCapableBeanFactory#instantiateUsingFactoryMethod(
+			 * java.lang.String, org.springframework.beans.factory.support.RootBeanDefinition,
+			 * java.lang.Object[])}
 			 */
 			beanDef.setBeanClassName(configClass.getMetadata().getClassName());
 			beanDef.setFactoryMethodName(methodName);

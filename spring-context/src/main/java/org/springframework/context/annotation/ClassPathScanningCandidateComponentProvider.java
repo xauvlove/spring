@@ -449,6 +449,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setResource(resource);
 							sbd.setSource(resource);
+							/**
+							 * 这里，如果是 mybatis 进行扫描
+							 * 会判断是否符合 mybatis 的格式
+							 * （mybatis 的扫描器继承并重写了 isCandidateComponent() 方法，
+							 * 因此可以扫描符合自己的类）
+							 * 首先是个接口，其次是独立的，判定成功，mapper 才会加入 candidates
+							 */
 							if (isCandidateComponent(sbd)) {
 								if (debugEnabled) {
 									logger.debug("Identified candidate component class: " + resource);

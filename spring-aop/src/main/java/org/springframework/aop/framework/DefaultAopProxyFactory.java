@@ -46,8 +46,21 @@ import org.springframework.aop.SpringProxy;
 @SuppressWarnings("serial")
 public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 
+	/**
+	 * 产生 jdk or cglib 动态代理
+	 *
+	 * @param config the AOP configuration in the form of an
+	 * AdvisedSupport object
+	 * @return
+	 * @throws AopConfigException
+	 */
 	@Override
 	public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
+		/**
+		 * optimize：无法在基于注解的 spring 环境进行配置
+		 * 			 可以在 xml 中配置
+		 * proxyTargetClass：如果是 false，则使用 jdk 代理，如果是 true 使用 cglib 代理（但如果是一个接口，那么无论如何都使用 jdk 代理）
+		 */
 		if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {
 			Class<?> targetClass = config.getTargetClass();
 			if (targetClass == null) {

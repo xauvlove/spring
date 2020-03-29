@@ -16,6 +16,8 @@
 
 package org.springframework.context.annotation;
 
+import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,6 +25,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * 加了这个注解
+ * 就会在 spring 容器中新增一个后置处理器：
+ * 	{@link AnnotationAwareAspectJAutoProxyCreator}
+ *
  * Enables support for handling components marked with AspectJ's {@code @Aspect} annotation,
  * similar to functionality found in Spring's {@code <aop:aspectj-autoproxy>} XML element.
  * To be used on @{@link Configuration} classes as follows:

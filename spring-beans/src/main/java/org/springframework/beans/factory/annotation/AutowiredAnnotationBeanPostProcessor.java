@@ -66,6 +66,27 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 	  private final Set<String> singletonsCurrentlyInCreation =
+ *  * 			Collections.newSetFromMap(new ConcurrentHashMap<>(16));
+ *  * 这个 Set 集合里面存放了正在创建的 bean，也即是说，bean 刚刚 new 出来，
+ *  * 但是还没有进行	依赖注入，因为它需要进行一系列的属性依赖注入，
+ *  * 如果 bean x 依赖于其它 bean y，这时候就会将这个 bean x 加入到 Set
+ *  * 然后去 spring 容器进行查找和注入
+ *  *
+ *  * 这里可以解决循环依赖
+ *  *
+ *  * 如果 bean x 依赖 bean y，bean y 同样依赖 bean x
+ *  * 在实例化 x 之后，会对 x 进行依赖注入，此时 x 依赖 y，就会在 spring 查找 y，
+ *  * 就会调用这个方法 getSingleton()，
+ *  * 如果找不到 y，就会先实例化 y，y 进行依赖注入，发现，y 依赖于 x，
+ *  * 同样将 y 加入到 Set，在 spring 容器查找 x
+ *  * 同样，调用这个方法，发现找不到 x，但是发现 x 在创建过程中
+ *  * 但此时，x 已经实例化完毕了，y 就可以将 x 注入到自己
+ *  * 那么这就会调用 field.set(x)，将 x 注入进来
+ *  *
+ *  * 也就是说，当 x y 循环依赖的时候，
+ *  * 如果 x 首先被实例化，x 是在最后完成自己的依赖注入的，
+ *
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
  * that autowires annotated fields, setter methods and arbitrary config methods.
  * Such members to be injected are detected through a Java 5 annotation: by default,
@@ -270,14 +291,19 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		}
 
 		// Quick check on the concurrent map first, with minimal locking.
+		/**
+		 * 每实例化一个 bean，就会把这个 bean 的构造方法放到 candidateConstructorsCache 中
+		 */
 		Constructor<?>[] candidateConstructors = this.candidateConstructorsCache.get(beanClass);
 		if (candidateConstructors == null) {
 			// Fully synchronized resolution now...
+			// 双重锁检查
 			synchronized (this.candidateConstructorsCache) {
 				candidateConstructors = this.candidateConstructorsCache.get(beanClass);
 				if (candidateConstructors == null) {
 					Constructor<?>[] rawCandidates;
 					try {
+						//得到全部构造方法
 						rawCandidates = beanClass.getDeclaredConstructors();
 					}
 					catch (Throwable ex) {
@@ -330,10 +356,16 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 							}
 							candidates.add(candidate);
 						}
+						// 构造方法参数 = 0
 						else if (candidate.getParameterCount() == 0) {
+							// 构造方法没有参数，为无参构造方法
+							// 那么设置它为默认构造方法
 							defaultConstructor = candidate;
 						}
 					}
+					/**
+					 * 下面的 if else 是对构造方法的一系列判断
+					 */
 					if (!candidates.isEmpty()) {
 						// Add default constructor to list of optional constructors, as fallback.
 						if (requiredConstructor == null) {
@@ -349,9 +381,15 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 						}
 						candidateConstructors = candidates.toArray(new Constructor<?>[0]);
 					}
+					/**
+					 * 如果只有一个构造方法，且含有参数
+					 */
 					else if (rawCandidates.length == 1 && rawCandidates[0].getParameterCount() > 0) {
 						candidateConstructors = new Constructor<?>[] {rawCandidates[0]};
 					}
+					/**
+					 * 必须使用 xml 才可能会走下面判断逻辑
+					 */
 					else if (nonSyntheticConstructors == 2 && primaryConstructor != null &&
 							defaultConstructor != null && !primaryConstructor.equals(defaultConstructor)) {
 						candidateConstructors = new Constructor<?>[] {primaryConstructor, defaultConstructor};
@@ -592,11 +630,18 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				Assert.state(beanFactory != null, "No BeanFactory available");
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
+					//查找需要注入的属性，因为之前添加过 依赖注入忽略
+					//因此这里的逻辑稍微复杂一些，不是单纯的进行注入，而是需要判断是否需要 依赖注入替换
+					//value 是需要注入的值
 					value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 				}
 				catch (BeansException ex) {
 					throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(field), ex);
 				}
+				/**
+				 * 找到需要注入的值 value 后
+				 * 进行下面的判断
+				 */
 				synchronized (this) {
 					if (!this.cached) {
 						if (value != null || this.required) {
@@ -618,6 +663,11 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					}
 				}
 			}
+			/**
+			 * 下面就是对 bean 的属性进行注入
+			 * field.set(bean, value)：把 field 属性设置到 bean 对象上
+			 * 这个属性的值是 value
+			 */
 			if (value != null) {
 				ReflectionUtils.makeAccessible(field);
 				field.set(bean, value);

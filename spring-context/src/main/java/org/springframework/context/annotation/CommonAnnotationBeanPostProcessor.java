@@ -74,7 +74,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 
 /**
+ * 处理通用注解：@PostConstruct 等
+ *
  * 处理 bean 生命周期回调
+ *
+ *
  *
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
  * that supports common Java annotations out of the box, in particular the JSR-250

@@ -344,6 +344,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		}
 
 		// Create proxy if we have advice.
+		// 拿到所有的切面
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
@@ -451,6 +452,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 		if (!proxyFactory.isProxyTargetClass()) {
 			if (shouldProxyTargetClass(beanClass, beanName)) {
+				//如果使用 CGLIB 代理，那么设置为 true
 				proxyFactory.setProxyTargetClass(true);
 			}
 			else {
@@ -458,6 +460,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			}
 		}
 
+		//准备切面信息，一会产生代理的时候会判断是否符合代理要求
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
 		proxyFactory.addAdvisors(advisors);
 		proxyFactory.setTargetSource(targetSource);
@@ -467,7 +470,10 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (advisorsPreFiltered()) {
 			proxyFactory.setPreFiltered(true);
 		}
-
+		/**
+		 * 返回创建的代理
+		 * 可返回 jdk cglib 和 另一种 cglib
+		 */
 		return proxyFactory.getProxy(getProxyClassLoader());
 	}
 
@@ -568,6 +574,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 
 	/**
+	 * 拿到所有的切面
+	 *
 	 * Return whether the given bean is to be proxied, what additional
 	 * advices (e.g. AOP Alliance interceptors) and advisors to apply.
 	 * @param beanClass the class of the bean to advise

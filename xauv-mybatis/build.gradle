@@ -25,6 +25,6 @@ dependencies {
     compile("org.slf4j:slf4j-log4j12:1.7.25")
     //下面是绑定 jul 的
     /*compile("org.slf4j:slf4j-jdk14:1.7.25")*/
-    compile("log4j:log4j:1.2.17")
+    //compile("log4j:log4j:1.2.17")
 
 }

@@ -101,6 +101,16 @@ class ConstructorResolver {
 
 
 	/**
+	 * 含参构造方法实例化 bean
+	 * 这里返回的时 bean 的一个包装类： BeanWrapper
+	 *
+	 * 我们只有拿到：构造方法，构造方法参数列表类型，构造方法参数值 这 3 个部分的时候，才可以实例化 bean
+	 * 下面就是为了拿到/匹配这 3 个模块
+	 *
+	 * 主要思路是：通过 BeanDefinition 拿到所有的构造方法，然后进行逐一匹配
+	 * 哪个匹配度最高，就使用哪个构造方法进行实例化
+	 * 最后返回 BeanWrapper
+	 *
 	 * "autowire constructor" (with constructor arguments by type) behavior.
 	 * Also applied if explicit constructor argument values are specified,
 	 * matching all remaining arguments with beans from the bean factory.
@@ -117,19 +127,46 @@ class ConstructorResolver {
 	public BeanWrapper autowireConstructor(String beanName, RootBeanDefinition mbd,
 			@Nullable Constructor<?>[] chosenCtors, @Nullable Object[] explicitArgs) {
 
+		//先创建 bean 的包装类
+		//BeanWrapperImpl 的 wrappedObject 属性是存储真实对象的
 		BeanWrapperImpl bw = new BeanWrapperImpl();
 		this.beanFactory.initBeanWrapper(bw);
 
+		/**
+		 * constructorToUse 是最后真正用于实例化 bean 对象的构造方法
+		 */
 		Constructor<?> constructorToUse = null;
+		/**
+		 * 实例化需要那些值
+		 */
 		ArgumentsHolder argsHolderToUse = null;
+		/**
+		 * argsToUse 有两种方法设置
+		 * 1.改变 BeanDefinition
+		 * 2.在 xml 设置
+		 */
 		Object[] argsToUse = null;
 
 		if (explicitArgs != null) {
 			argsToUse = explicitArgs;
 		}
 		else {
+			//参数转换
 			Object[] argsToResolve = null;
 			synchronized (mbd.constructorArgumentLock) {
+				/**
+				 * 如果 spring 已经解析了构造方法（在 xml 中指定）
+				 * 会把这个构造方法赋值给 resolvedConstructorOrFactoryMethod
+				 * 那么下一次就不需要再次解析了
+				 * 就可以直接使用这个已经解析的构造方法
+				 * 让 constructorToUse = mbd.resolvedConstructorOrFactoryMethod
+				 *
+				 * 显然，通常情况下，这里并没有完成解析
+				 * resolvedConstructorOrFactoryMethod = null
+				 *
+				 * 且，如果这里已经完成解析，那么说明构造方法有多个
+				 * 只有构造方法有多个的时候，才会存在已经解析的构造方法
+				 */
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
 				if (constructorToUse != null && mbd.constructorArgumentsResolved) {
 					// Found a cached constructor...
@@ -160,6 +197,16 @@ class ConstructorResolver {
 				}
 			}
 
+			/**
+			 * 只有一个构造方法
+			 * 传入构造方法参数为空
+			 * BeanDefinition 中存在预设的参数列表
+			 *
+			 * 三个条件满足，那么就可以确定使用哪个构造方法进行实例化
+			 * mybatis 就预先设定了初始化参数，
+			 * mybatis 扫描 mapper 后，给其 BeanDefinition 设定了初始化类 MapperFactoryBean 和 一些构造方法参数
+			 * 因此，mybatis 在这里会进行执行并返回 BeanWrapper
+			 */
 			if (candidates.length == 1 && explicitArgs == null && !mbd.hasConstructorArgumentValues()) {
 				Constructor<?> uniqueCandidate = candidates[0];
 				if (uniqueCandidate.getParameterCount() == 0) {
@@ -174,26 +221,80 @@ class ConstructorResolver {
 			}
 
 			// Need to resolve the constructor.
+			/**
+			 * 没有已经解析的构造方法
+			 * 下面就进行构造方法的解析
+			 *
+			 * 判断传入的构造方法是否为空，
+			 * 或者指定了是以 构造方法 的方式进行自动装配
+			 */
 			boolean autowiring = (chosenCtors != null ||
 					mbd.getResolvedAutowireMode() == AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR);
 			ConstructorArgumentValues resolvedValues = null;
 
+			/**
+			 * 定义了最小参数个数
+			 */
 			int minNrOfArgs;
+			/**
+			 * 如果传入的构造方法给定了具体的数值
+			 * 那么 minNrOfArgs = explicitArgs.length
+			 * 最小参数个数为具体参数的个数
+			 */
 			if (explicitArgs != null) {
 				minNrOfArgs = explicitArgs.length;
 			}
 			else {
+				/**
+				 * ConstructorArgumentValues 用于存放构造方法的值
+				 * ConstructorArgumentValues 有一个 Map 和一个 List
+				 * Map 来存储有序的参数
+				 * List 用于存储无序的参数
+				 *
+				 * 我们在定义 xml 时：需要指定下标
+				 * <bean id="xauv" class="com.xauv.Xauv">
+				 * 		<constructor-arg index="0" value="a"></constructor-arg>
+				 * 		<constructor-arg index="1" value="b"></constructor-arg>
+				 * </bean>
+				 *
+				 * mbd.getConstructorArgumentValues() 是指，拿出我们在 BeanDefinition 中增加的参数值[]
+				 * mybatis 在生成 mapper 代理对象前期，对 BeanDefinition 进行过处理
+				 * 	其中就包括增加了构造方法参数，这里可以获取到增加的这些参数
+				 */
 				ConstructorArgumentValues cargs = mbd.getConstructorArgumentValues();
 				resolvedValues = new ConstructorArgumentValues();
+				//如果我们在 BeanDefinition 增加了3个参数，那么实例化这个 bean 最少需要 3 个参数
+				//如果小于 3 个，就不匹配
 				minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 			}
 
+			/**
+			 * 排序
+			 */
 			AutowireUtils.sortConstructors(candidates);
+			/**
+			 * 最小类型不同权重
+			 */
 			int minTypeDiffWeight = Integer.MAX_VALUE;
+			/**
+			 * 会有歧义的构造方法
+			 */
 			Set<Constructor<?>> ambiguousConstructors = null;
 			LinkedList<UnsatisfiedDependencyException> causes = null;
 
+			//循环所有的构造方法
+			/**
+			 * 这里可能会存在很多类似的构造方法(已排序，排序方式按照 访问修饰符，参数个数等)：
+			 * 1.public Xauv(String str, Integer i, Object v) {}
+			 * 2.public Xauv(Integer i, Object v) {}
+			 * 3.public Xauv(Object v) {}
+			 *
+			 * 4.protected Xauv(String str, Integer i, Venlexi v) {}
+			 * 5.protected Xauv(Integer i, Object v) {}
+			 * 6.protected Xauv(Object v) {}
+			 */
 			for (Constructor<?> candidate : candidates) {
+				//拿到构造方法的参数列表
 				Class<?>[] paramTypes = candidate.getParameterTypes();
 
 				if (constructorToUse != null && argsToUse != null && argsToUse.length > paramTypes.length) {
@@ -201,6 +302,19 @@ class ConstructorResolver {
 					// do not look any further, there are only less greedy constructors left.
 					break;
 				}
+				/**
+				 * minNrOfArgs 是构造方法所需最小参数数量
+				 * 如果当前拿到的构造方法参数数量小于 minNrOfArgs 那么肯定无法匹配
+				 *
+				 * -- 注意：如果我们在 bean 实例化前修改了 BeanDefinition，
+				 * 		   增加了我们所期望用于 bean 实例化的构造方法，且给了这个构造方法所需参数
+				 * 		   那么，minNrOfArgs 就是我们给定的构造方法参数的长度
+				 * 		   （如果我们在 bean 实例化前没有给 BeanDefinition 指定构造方法，也没有传入参数，那么 minNrOfArgs = 0）
+				 * 		   ------
+				 * 		   当前 spring 会拿到这个 bean 的所有构造方法进行匹配
+				 * 		   如果当前正在匹配的构造方法参数数量 paramTypes.length 小于我们期望的构造方法参数数量
+				 * 		   那么肯定无法匹配，继续循环匹配下一个构造方法
+				 */
 				if (paramTypes.length < minNrOfArgs) {
 					continue;
 				}
@@ -208,6 +322,11 @@ class ConstructorResolver {
 				ArgumentsHolder argsHolder;
 				if (resolvedValues != null) {
 					try {
+						/**
+						 * 判断是否加了 @ConstructorProperties 注解
+						 * 如果加了，就把值取出来
+						 * @ConstructorProperties(value={123, "abc"})
+						 */
 						String[] paramNames = ConstructorPropertiesChecker.evaluate(candidate, paramTypes.length);
 						if (paramNames == null) {
 							ParameterNameDiscoverer pnd = this.beanFactory.getParameterNameDiscoverer();
@@ -215,6 +334,10 @@ class ConstructorResolver {
 								paramNames = pnd.getParameterNames(candidate);
 							}
 						}
+						/**
+						 * 由于我们在 xml 设置参数的时候，设置的都是字符串类型
+						 * 因此，需要进行参数解析，解析转换为 Integer，Long，Object 等
+						 */
 						argsHolder = createArgumentArray(beanName, mbd, resolvedValues, bw, paramTypes, paramNames,
 								getUserDeclaredConstructor(candidate), autowiring, candidates.length == 1);
 					}
@@ -238,6 +361,11 @@ class ConstructorResolver {
 					argsHolder = new ArgumentsHolder(explicitArgs);
 				}
 
+				/**
+				 * typeDiffWeight 可以理解为 当前构造方法的匹配程度
+				 * 如果当前我们有构造方法参数 (String, Integer, Venlexi)
+				 * 我们发现，构造方法 4 是最匹配的
+				 */
 				int typeDiffWeight = (mbd.isLenientConstructorResolution() ?
 						argsHolder.getTypeDifferenceWeight(paramTypes) : argsHolder.getAssignabilityWeight(paramTypes));
 				// Choose this constructor if it represents the closest match.
@@ -248,6 +376,13 @@ class ConstructorResolver {
 					minTypeDiffWeight = typeDiffWeight;
 					ambiguousConstructors = null;
 				}
+				/**
+				 * 这里是：如果计算的构造方法匹配度一致
+				 * 先将构造方法加入到有歧义的构造方法集合中 ambiguousConstructors.add(candidate);
+				 *
+				 * 然后继续循环构造方法
+				 * 如果找到匹配度更高的，就将歧义集合 ambiguousConstructors 清空
+				 */
 				else if (constructorToUse != null && typeDiffWeight == minTypeDiffWeight) {
 					if (ambiguousConstructors == null) {
 						ambiguousConstructors = new LinkedHashSet<>();
