@@ -32,4 +32,5 @@ rootProject.children.each {project ->
 }
 include 'xauv-springframework-context'
 include 'xauv-mybatis'
+include 'xauv-springmvc'
 

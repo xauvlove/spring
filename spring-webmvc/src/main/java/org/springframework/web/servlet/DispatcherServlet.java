@@ -55,6 +55,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.ui.context.ThemeSource;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.async.WebAsyncManager;
@@ -62,6 +63,9 @@ import org.springframework.web.context.request.async.WebAsyncUtils;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping;
+import org.springframework.web.servlet.mvc.Controller;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.util.NestedServletException;
 import org.springframework.web.util.WebUtils;
 
@@ -488,6 +492,8 @@ public class DispatcherServlet extends FrameworkServlet {
 
 
 	/**
+	 * 核心方法
+	 * 初始化 web 一系列策略
 	 * This implementation calls {@link #initStrategies}.
 	 */
 	@Override
@@ -500,10 +506,15 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		//上传文件的 bean
 		initMultipartResolver(context);
+		//国际化
 		initLocaleResolver(context);
+		//前端主题样式
 		initThemeResolver(context);
+		//初始化 HandlerMapping（处理器映射器），有两种
 		initHandlerMappings(context);
+
 		initHandlerAdapters(context);
 		initHandlerExceptionResolvers(context);
 		initRequestToViewNameTranslator(context);
@@ -512,6 +523,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/**
+	 * 对于上传文件所配置的 bean，bean name 必须是：multipartResolver
+	 * {@link DispatcherServlet#MULTIPART_RESOLVER_BEAN_NAME}
+	 *
 	 * Initialize the MultipartResolver used by this class.
 	 * <p>If no bean is defined with the given name in the BeanFactory for this namespace,
 	 * no multipart handling is provided.
@@ -586,6 +600,22 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/**
+	 * 初始化 处理器映射器 HandlerMapping，
+	 * HandlerMapping 可以根据请求类型来返回 handler 来处理请求
+	 *
+	 * HandlerMapping 有两种，配置在 DispatcherServlet.properties 中
+	 * DispatcherServlet 在加载到内存时，会将 DispatcherServlet.properties 配置文件的信息全部加载
+	 * 并放到 defaultStrategies 中
+	 *
+	 * 默认 HandlerMapping 类型：
+	 * 1.org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping,
+	 * 	用于处理 实现了 Controller 接口的请求
+	 * 2.org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
+	 *	用于处理 GetMapping 之类的请求
+	 *
+	 * 这两种 处理器映射器 都无法处理返回请求为 **.html 类型的请求（这种请求一般是为了返回 html 指定文件）
+	 * spring boot 添加了自己的 handlerMapping，用于处理这样的请求
+	 *
 	 * Initialize the HandlerMappings used by this class.
 	 * <p>If no HandlerMapping beans are defined in the BeanFactory for this namespace,
 	 * we default to BeanNameUrlHandlerMapping.
@@ -595,6 +625,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		if (this.detectAllHandlerMappings) {
 			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
+			//从 bean 容器里面取 HandlerMapping，@singletonObjects
 			Map<String, HandlerMapping> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
 			if (!matchingBeans.isEmpty()) {
@@ -615,6 +646,12 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Ensure we have at least one HandlerMapping, by registering
 		// a default HandlerMapping if no other mappings are found.
+		/**
+		 * 获取处理器的所有类型 {@link HandlerExecutionChain}
+		 * 并赋值给 handlerMappings 这个 list
+		 *
+		 * 是从一个配置文件获取的：DispatcherServlet.properties
+		 */
 		if (this.handlerMappings == null) {
 			this.handlerMappings = getDefaultStrategies(context, HandlerMapping.class);
 			if (logger.isTraceEnabled()) {
@@ -1013,6 +1050,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				//确定 controller 的类型，有3种，返回处理请求的 handler
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
@@ -1020,6 +1058,10 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Determine handler adapter for the current request.
+				/**
+				 * 刚才已经获取了 controller 的类型
+				 * 现在获取 处理请求的实体，用于处理请求，执行方法
+				 */
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
@@ -1032,6 +1074,10 @@ public class DispatcherServlet extends FrameworkServlet {
 					}
 				}
 
+				/**
+				 * 拦截器处理：
+				 * 前置拦截处理
+				 */
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
@@ -1044,6 +1090,10 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				applyDefaultViewName(processedRequest, mv);
+				/**
+				 * 拦截器处理：
+				 * 后置拦截处理
+				 */
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1221,6 +1271,19 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/**
+	 * 下面是对请求寻找 处理器 handler
+	 *
+	 * Controller 有三种类型实现：
+	 * 1.加 @Controller 注解  -> 方法类型
+	 * 2.实现 {@link Controller} 接口，并纳入 spring 容器 @Component("/requestMappingPath") -> bean 类型
+	 * 3.实现 {@link HttpRequestHandler}接口 并实现方法，并加入 spring 容器
+	 *
+	 * 对应的，HandlerExecutionChain 有三种类型：方法类型，bean 类型
+	 * 其实是两种，因为 2 3 两种方式 都可以用一种 handler 来处理 他们虽然接口不同 但实现接口方法名是相同的
+	 *
+	 * 1.{@link RequestMappingHandlerMapping},
+	 * 2.{@link BeanNameUrlHandlerMapping}，用于处理 加了 @Controller 注解的
+	 *
 	 * Return the HandlerExecutionChain for this request.
 	 * <p>Tries all handler mappings in order.
 	 * @param request current HTTP request
