@@ -20,6 +20,7 @@ public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		Iterator<String> beanNamesIterator = beanFactory.getBeanNamesIterator();
+
 		beanNamesIterator.forEachRemaining(data -> {
 			if(data.endsWith("ServiceImpl")) {
 				BeanDefinition myServiceImpl = beanFactory.getBeanDefinition(data);

@@ -161,6 +161,8 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 	@Nullable
 	protected Object lookupHandler(String urlPath, HttpServletRequest request) throws Exception {
 		// Direct match?
+		//在 springboot 里面，handlerMap 存在两个键值： "/webjars/***"   "/***"
+		//也就是说 如果我们直接访问 /webjars/*** 或者 /*** 那么会走下面逻辑
 		Object handler = this.handlerMap.get(urlPath);
 		if (handler != null) {
 			// Bean name or resolved handler?
@@ -173,6 +175,8 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 		}
 
 		// Pattern match?
+		//如果我们访问的不是 /webjars/*** 或者 /*** ，而是类似于 /webjars/xxx.xxx /index.html /hello.html
+		//走下面的正则表达式匹配逻辑
 		List<String> matchingPatterns = new ArrayList<>();
 		for (String registeredPattern : this.handlerMap.keySet()) {
 			if (getPathMatcher().match(registeredPattern, urlPath)) {

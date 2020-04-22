@@ -63,6 +63,7 @@ import org.springframework.web.context.request.async.WebAsyncUtils;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.servlet.handler.AbstractUrlHandlerMapping;
 import org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping;
 import org.springframework.web.servlet.mvc.Controller;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -284,6 +285,10 @@ public class DispatcherServlet extends FrameworkServlet {
 
 	private static final Properties defaultStrategies;
 
+	/**
+	 * 一切从这里开始
+	 * 加载静态块
+	 */
 	static {
 		// Load default strategy implementations from properties file.
 		// This is currently strictly internal and not meant to be customized
@@ -524,6 +529,10 @@ public class DispatcherServlet extends FrameworkServlet {
 
 	/**
 	 * 对于上传文件所配置的 bean，bean name 必须是：multipartResolver
+	 * 因为这里初始化 文件上传处理器的时候，会从 spring 容器里面直接get
+	 * 	-> this.multipartResolver = context.getBean(MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
+	 * 	如果我们往 spring 容器里面注入的 文件上传处理器名字不是 multipartResolver，那么这里就没办法 get 到
+	 * 	因而 文件处理器就无法初始化
 	 * {@link DispatcherServlet#MULTIPART_RESOLVER_BEAN_NAME}
 	 *
 	 * Initialize the MultipartResolver used by this class.
@@ -626,6 +635,11 @@ public class DispatcherServlet extends FrameworkServlet {
 		if (this.detectAllHandlerMappings) {
 			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
 			//从 bean 容器里面取 HandlerMapping，@singletonObjects
+			/**
+			 * 他这么写的话，意思是从 spring 容器里面拿 HandlerMapping 类型的 bean
+			 * 因此我们可以自己写 HandlerMapping，注册到 spring 容器中
+			 * 这样的话，我们就可以有很多 HandlerMapping 包括自己需求的
+			 */
 			Map<String, HandlerMapping> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
 			if (!matchingBeans.isEmpty()) {
@@ -990,7 +1004,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	private void logRequest(HttpServletRequest request) {
-		LogFormatUtils.traceDebug(logger, traceOn -> {
+		LogFormatUtils.traceDebug(logger, traceOn  -> {
 			String params;
 			if (isEnableLoggingRequestDetails()) {
 				params = request.getParameterMap().entrySet().stream()
@@ -1051,6 +1065,8 @@ public class DispatcherServlet extends FrameworkServlet {
 
 				// Determine handler for the current request.
 				//确定 controller 的类型，有3种，返回处理请求的 handler
+				//这里是得到对应的处理器映射器
+				//根据处理器映射器获得 处理器，来封装 业务逻辑执行
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
@@ -1061,10 +1077,23 @@ public class DispatcherServlet extends FrameworkServlet {
 				/**
 				 * 刚才已经获取了 controller 的类型
 				 * 现在获取 处理请求的实体，用于处理请求，执行方法
+				 *
+				 * 1.如果确定的 controller 的类型是一个 bean（加了 @Controller ），ha 是一个 方法
+				 *
+				 * 2.如果确定的 controller 是一个方法，（实现了两个接口），ha 是一个 对象，
+				 * 这个对象 调用 {@link HttpRequestHandler#handleRequest(
+				 * javax.servlet.http.HttpServletRequest,
+				 * javax.servlet.http.HttpServletResponse)} 来处理请求
 				 */
+				//因为处理器分为多种，如果是非springboot 默认有2种，全部用 HandlerExecutionChain 来封装了
+				//这里就要拿到 HandlerExecutionChain 中真实的处理器 handler
+				//同样这里使用处理器适配器来真正处理业务逻辑
+				//HandlerAdapter 封装了 业务逻辑真实执行逻辑
+				//HandlerAdapter 可以直接进行反射调用
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
+				// Get or Post
 				String method = request.getMethod();
 				boolean isGet = "GET".equals(method);
 				if (isGet || "HEAD".equals(method)) {
@@ -1083,6 +1112,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Actually invoke the handler.
+				// 反射调用业务逻辑
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1281,8 +1311,12 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * 对应的，HandlerExecutionChain 有三种类型：方法类型，bean 类型
 	 * 其实是两种，因为 2 3 两种方式 都可以用一种 handler 来处理 他们虽然接口不同 但实现接口方法名是相同的
 	 *
-	 * 1.{@link RequestMappingHandlerMapping},
-	 * 2.{@link BeanNameUrlHandlerMapping}，用于处理 加了 @Controller 注解的
+	 * 1.{@link RequestMappingHandlerMapping}，用于处理加了 @Controller 注解的
+	 * 	将 拦截路径，处理方法（method），<"/path",method> 放到 map：
+	 *
+	 * 2.{@link BeanNameUrlHandlerMapping}，用于处理 实现了 Controller 接口的
+	 * 	它会将 拦截路径，处理逻辑（实现了 Controller 接口的类对象）  <"/path",object>
+	 * 		放到 map：{@link AbstractUrlHandlerMapping#handlerMap}
 	 *
 	 * Return the HandlerExecutionChain for this request.
 	 * <p>Tries all handler mappings in order.
