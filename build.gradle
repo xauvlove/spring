@@ -1,5 +1,10 @@
 buildscript {
 	repositories {
+		jcenter {
+			url "http://jcenter.bintray.com/"
+		}
+		maven { url "http://maven.aliyun.com/nexus/content/groups/public/"}
+		maven{ url 'http://maven.aliyun.com/nexus/content/repositories/jcenter'}
 		maven { url "https://repo.spring.io/plugins-release" }
 	}
 	dependencies {
@@ -147,6 +152,11 @@ configure(allprojects) { project ->
 	}
 
 	repositories {
+		jcenter {
+			url "http://jcenter.bintray.com/"
+		}
+		maven { url "http://maven.aliyun.com/nexus/content/groups/public/"}
+		maven{ url 'http://maven.aliyun.com/nexus/content/repositories/jcenter'}
 		maven { url "https://repo.spring.io/libs-release" }
 		maven { url "https://repo.spring.io/snapshot" }
 		mavenLocal()
